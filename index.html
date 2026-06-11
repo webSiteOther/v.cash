@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام إدارة الحسابات والعمليات</title>
+    <style>
+        :root {
+            --bg-main: #121212;
+            --bg-card: #1e1e1e;
+            --bg-input: #2d2d2d;
+            --text-main: #ffffff;
+            --text-muted: #aaaaaa;
+            --accent: #00adb5;
+            --success: #00e676;
+            --danger: #ff1744;
+            --border: #3d3d3d;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            display: none;
+        }
+
+        .active {
+            display: block;
+        }
+
+        /* واجهة تسجيل الدخول */
+        .login-card {
+            background: var(--bg-card);
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            border: 1px solid var(--border);
+        }
+
+        .login-card h2 {
+            margin-bottom: 24px;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+
+        /* المكونات المشتركة */
+        .form-group {
+            margin-bottom: 20px;
+            text-align: right;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text-main);
+            font-size: 16px;
+            outline: none;
+            transition: border 0.3s;
+        }
+
+        input:focus, select:focus {
+            border-color: var(--accent);
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: var(--accent);
+            border: none;
+            border-radius: 6px;
+            color: var(--text-main);
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: opacity 0.3s;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        .btn-secondary {
+            background: #444;
+            margin-top: 10px;
+        }
+
+        /* الهيكل العام للوحة التحكم */
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 30px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logout-btn {
+            background: var(--danger);
+            padding: 6px 12px;
+            font-size: 14px;
+            width: auto;
+        }
+
+        /* كروت الإحصائيات */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .metric-card {
+            background: var(--bg-card);
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            border-right: 4px solid var(--accent);
+        }
+
+        .metric-card.deposit { border-right-color: var(--success); }
+        .metric-card.withdraw { border-right-color: var(--danger); }
+        .metric-card.profit { border-right-color: #e040fb; }
+
+        .metric-title {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        .metric-value {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        /* تصميم الجداول والمحتوى الرئيسي */
+        .main-layout {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 30px;
+        }
+
+        @media (max-width: 900px) {
+            .main-layout { grid-template-columns: 1fr; }
+        }
+
+        .panel {
+            background: var(--bg-card);
+            padding: 24px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            margin-bottom: 25px;
+        }
+
+        .panel-title {
+            font-size: 18px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            max-height: 400px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: right;
+        }
+
+        th, td {
+            padding: 12px;
+            border-bottom: 1px solid var(--border);
+            font-size: 14px;
+        }
+
+        th {
+            background: var(--bg-main);
+            color: var(--text-muted);
+            position: sticky;
+            top: 0;
+        }
+
+        .type-badge {
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .type-badge.ايداع { background: rgba(0, 230, 118, 0.15); color: var(--success); }
+        .type-badge.سحب { background: rgba(255, 23, 68, 0.15); color: var(--danger); }
+
+        .flex-actions {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .flex-actions select, .flex-actions input {
+            width: auto;
+            min-width: 150px;
+        }
+
+        .export-btn {
+            background: #2e7d32;
+            width: auto;
+            padding: 10px 16px;
+            font-size: 14px;
+        }
+
+        /* شاشة التحميل المنتشرة */
+        .loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0,0,0,0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            font-size: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="loader" id="loader">جاري معالجة البيانات...</div>
+
+    <div class="login-card container active" id="login-view">
+        <h2>تسجيل الدخول</h2>
+        <div class="form-group">
+            <label>اسم المستخدم</label>
+            <input type="text" id="username" placeholder="ادخل اسم المستخدم">
+        </div>
+        <div class="form-group">
+            <label>كلمة المرور</label>
+            <input type="password" id="password" placeholder="ادخل كلمة المرور">
+        </div>
+        <button onclick="handleLogin()">دخول</button>
+    </div>
+
+    <div class="container" id="admin-view">
+        <div class="dashboard-header">
+            <h2>لوحة تحكم المسؤول (Admin)</h2>
+            <div class="user-info">
+                <span>مرحباً، المسؤول</span>
+                <button class="logout-btn" onclick="logout()">خروج</button>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-title">تصفية واستخراج البيانات الكلية</div>
+            <div class="flex-actions">
+                <select id="month-filter" onchange="loadAdminDashboard()">
+                    <option value="">كل الأشهر</option>
+                    <option value="1">يناير</option>
+                    <option value="2">فبراير</option>
+                    <option value="3">مارس</option>
+                    <option value="4">أبريل</option>
+                    <option value="5">مايو</option>
+                    <option value="6">يونيو</option>
+                    <option value="7">يوليو</option>
+                    <option value="8">أغسطس</option>
+                    <option value="9">سبتمبر</option>
+                    <option value="10">أكتوبر</option>
+                    <option value="11">نوفمبر</option>
+                    <option value="12">ديسمبر</option>
+                </select>
+                <button class="export-btn" onclick="exportAllToExcel()">تصدير الحسابات ككل (Excel)</button>
+            </div>
+        </div>
+
+        <div class="metrics-grid">
+            <div class="metric-card deposit">
+                <div class="metric-title">إجمالي الإيداعات بالشهر المحدد</div>
+                <div class="metric-value" id="metrics-deposit">0.00</div>
+            </div>
+            <div class="metric-card withdraw">
+                <div class="metric-title">إجمالي السحوبات بالشهر المحدد</div>
+                <div class="metric-value" id="metrics-withdraw">0.00</div>
+            </div>
+            <div class="metric-card profit">
+                <div class="metric-title">صافي الأرباح المحققة</div>
+                <div class="metric-value" id="metrics-profit">0.00</div>
+            </div>
+        </div>
+
+        <div class="main-layout">
+            <div>
+                <div class="panel">
+                    <div class="panel-title">ملخص أرصدة الأرقام وأرباحها الصافية</div>
+                    <div class="table-container">
+                        <table id="phones-summary-table">
+                            <thead>
+                                <tr>
+                                    <th>رقم الهاتف</th>
+                                    <th>الرصيد الحالي</th>
+                                    <th>صافي أرباح الرقم</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-title">
+                        <span>سجل العمليات الأخير للفترة المحددة</span>
+                        <div style="display:flex; gap: 8px;">
+                            <select id="export-single-phone-select"><option value="">اختر رقم لتصديره منفرد</option></select>
+                            <button class="export-btn" style="padding: 6px 12px;" onclick="exportSinglePhoneToExcel()">تصدير الرقم</button>
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <table id="transactions-table">
+                            <thead>
+                                <tr>
+                                    <th>التاريخ والوقت</th>
+                                    <th>رقم الهاتف</th>
+                                    <th>النوع</th>
+                                    <th>قيمة العملية</th>
+                                    <th>المكسب</th>
+                                    <th>بواسطة</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <div class="panel">
+                    <div class="panel-title">إضافة رقم هاتف جديد للسيستم</div>
+                    <div class="form-group">
+                        <label>رقم الهاتف</label>
+                        <input type="text" id="new-phone" placeholder="مثال: 01xxxxxxxxx">
+                    </div>
+                    <div class="form-group">
+                        <label>الرصيد الافتتاحي (Initial Balance)</label>
+                        <input type="number" id="new-balance" placeholder="0.00">
+                    </div>
+                    <button onclick="handleClearanceAndAddPhone()">تسجيل الرقم بالسيستم</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container" id="entry-view">
+        <div class="dashboard-header">
+            <h2>شاشة إدخال البيانات والعمليات</h2>
+            <div class="user-info">
+                <span>مرحباً، <strong id="logged-username"></strong></span>
+                <button class="logout-btn" onclick="logout()">خروج</button>
+            </div>
+        </div>
+
+        <div class="main-layout">
+            <div class="panel">
+                <div class="panel-title">تسجيل عملية سحب / إيداع جديدة</div>
+                
+                <div class="form-group">
+                    <label>اختر رقم الهاتف المالي</label>
+                    <select id="entry-phone-select" onchange="updateUserSideStats()">
+                        <option value="">-- اختر الرقم --</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>نوع العملية المجرية</label>
+                    <select id="entry-type">
+                        <option value="ايداع">إيـداع (+)</option>
+                        <option value="سحب">سـحب (-)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>قيمة العملية الكلية (Transaction Amount)</label>
+                    <input type="number" id="entry-amount" placeholder="0.00">
+                </div>
+
+                <div class="form-group">
+                    <label>قيمة المكسب الصافي من العملية</label>
+                    <input type="number" id="entry-profit" placeholder="0.00" value="0">
+                </div>
+
+                <button onclick="handleSubmitTransaction()">حفظ وإرسال العملية للسيستم</button>
+            </div>
+
+            <div>
+                <div class="panel" style="border-right: 4px solid var(--accent);">
+                    <div class="panel-title">بيانات حية للرقم المحدد حالياً</div>
+                    <div style="margin-bottom: 15px;">
+                        <label>الرصيد الحالي المتوفر بالرقم:</label>
+                        <div id="side-current-balance" style="font-size: 24px; font-weight: bold; color: var(--success);">0.00</div>
+                    </div>
+                    <div>
+                        <label>إجمالي أرباح هذا الرقم التراكمية:</label>
+                        <div id="side-total-profit" style="font-size: 24px; font-weight: bold; color: #e040fb;">0.00</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // رابط الأب سكربت الخاص بكِ
+        const API_URL = "https://script.google.com/macros/s/AKfycbzS7vofWxWdCq5-NoQ0bSjBLzL4COoR1hEYy5NaTwdg1vHABuO9Y0G4diwL8F7rp2Z_KA/exec";
+        
+        let currentUser = "";
+        let currentRole = "";
+        let globalPhonesData = []; // لحفظ تفاصيل الأرقام محلياً لتحديث الإحصائيات الجانبية بسرعة
+        let globalTransactionsData = [];
+
+        function showLoader(show) {
+            document.getElementById('loader').style.display = show ? 'flex' : 'none';
+        }
+
+        function switchView(viewId) {
+            document.querySelectorAll('.container').forEach(c => c.classList.remove('active'));
+            document.getElementById(viewId).classList.add('active');
+        }
+
+        // تسجيل الدخول
+        async function handleLogin() {
+            const user = document.getElementById('username').value.trim();
+            const pass = document.getElementById('password').value.trim();
+
+            if(!user || !pass) { alert('برجاء ملء البيانات كاملة'); return; }
+
+            showLoader(true);
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    mode: 'cors',
+                    body: JSON.stringify({ action: 'login', username: user, password: pass })
+                });
+                const res = await response.json();
+                showLoader(false);
+
+                if (res.status === 'success') {
+                    currentUser = user;
+                    currentRole = res.role;
+                    if(currentRole === 'admin') {
+                        switchView('admin-view');
+                        loadAdminDashboard();
+                    } else {
+                        document.getElementById('logged-username').innerText = currentUser;
+                        switchView('entry-view');
+                        loadUserInterface();
+                    }
+                } else {
+                    alert(res.message);
+                }
+            } catch (error) {
+                showLoader(false);
+                alert('خطأ في الاتصال بالسيستم: ' + error);
+            }
+        }
+
+        // خروج
+        function logout() {
+            currentUser = "";
+            currentRole = "";
+            document.getElementById('username').value = "";
+            document.getElementById('password').value = "";
+            switchView('login-view');
+        }
+
+        // --- وظائف الأدمن ---
+        async function loadAdminDashboard() {
+            const selectedMonth = document.getElementById('month-filter').value;
+            showLoader(true);
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    mode: 'cors',
+                    body: JSON.stringify({ action: 'getDashboardData', month: selectedMonth })
+                });
+                const res = await response.json();
+                showLoader(false);
+
+                if(res.status === 'success') {
+                    // تحديث الكروت المالية الكلية للفلتر المحدد
+                    document.getElementById('metrics-deposit').innerText = res.data.totalDeposit.toFixed(2);
+                    document.getElementById('metrics-withdraw').innerText = res.data.totalWithdraw.toFixed(2);
+                    document.getElementById('metrics-profit').innerText = res.data.totalProfit.toFixed(2);
+
+                    // بناء جدول الأرصدة الحالية وأرباح كل رقم
+                    const phonesSummaryBody = document.getElementById('phones-summary-table').querySelector('tbody');
+                    phonesSummaryBody.innerHTML = "";
+                    res.data.phonesSummary.forEach(p => {
+                        phonesSummaryBody.innerHTML += `
+                            <tr>
+                                <td>${p.phone}</td>
+                                <td>${parseFloat(p.currentBalance).toFixed(2)}</td>
+                                <td style="color:#e040fb; font-weight:bold;">${parseFloat(p.netProfit).toFixed(2)}</td>
+                            </tr>
+                        `;
+                    });
+
+                    // بناء سجل المعاملات للفترة المحددة بالشهر
+                    const transBody = document.getElementById('transactions-table').querySelector('tbody');
+                    transBody.innerHTML = "";
+                    globalTransactionsData = res.data.transactions;
+                    
+                    // ملء قائمة الاختيار للتصدير المنفرد للأرقام
+                    const exportSelect = document.getElementById('export-single-phone-select');
+                    exportSelect.innerHTML = '<option value="">اختر رقم لتصديره منفرد</option>';
+                    
+                    res.data.phonesSummary.forEach(p => {
+                        exportSelect.innerHTML += `<option value="${p.phone}">${p.phone}</option>`;
+                    });
+
+                    globalTransactionsData.forEach(t => {
+                        const d = new Date(t.date);
+                        const formattedDate = `${d.toLocaleDateString('ar-EG')} ${d.toLocaleTimeString('ar-EG')}`;
+                        transBody.innerHTML += `
+                            <tr>
+                                <td>${formattedDate}</td>
+                                <td>${t.phone}</td>
+                                <td><span class="type-badge ${t.type}">${t.type}</span></td>
+                                <td>${t.amount.toFixed(2)}</td>
+                                <td style="color:${t.profit > 0 ? 'var(--success)' : 'var(--text-main)'}">${t.profit.toFixed(2)}</td>
+                                <td>${t.user}</td>
+                            </tr>
+                        `;
+                    });
+                }
+            } catch (error) {
+                showLoader(false);
+                alert('خطأ أثناء تحميل لوحة التحكم: ' + error);
+            }
+        }
+
+        async function handleClearanceAndAddPhone() {
+            const phone = document.getElementById('new-phone').value.trim();
+            const initialBalance = document.getElementById('new-balance').value.trim();
+
+            if(!phone || !initialBalance) { alert('الرجاء إدخال رقم الهاتف والرصيد الافتتاحي'); return; }
+
+            showLoader(true);
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    mode: 'cors',
+                    body: JSON.stringify({ action: 'addPhone', phone: phone, initialBalance: initialBalance })
+                });
+                const res = await response.json();
+                showLoader(false);
+                alert(res.message);
+                if(res.status === 'success') {
+                    document.getElementById('new-phone').value = "";
+                    document.getElementById('new-balance').value = "";
+                    loadAdminDashboard();
+                }
+            } catch (error) {
+                showLoader(false);
+                alert('حدث خطأ: ' + error);
+            }
+        }
+
+        // --- وظائف مدخل البيانات (User View) ---
+        async function loadUserInterface() {
+            showLoader(true);
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    mode: 'cors',
+                    body: JSON.stringify({ action: 'getPhones' })
+                });
+                const res = await response.json();
+                showLoader(false);
+
+                if(res.status === 'success') {
+                    globalPhonesData = res.data;
+                    const select = document.getElementById('entry-phone-select');
+                    select.innerHTML = '<option value="">-- اختر الرقم --</option>';
+                    globalPhonesData.forEach(p => {
+                        select.innerHTML += `<option value="${p.phone}">${p.phone}</option>`;
+                    });
+                    updateUserSideStats();
+                }
+            } catch (error) {
+                showLoader(false);
+                alert('خطأ في جلب أرقام التليفونات: ' + error);
+            }
+        }
+
+        function updateUserSideStats() {
+            const selectedPhone = document.getElementById('entry-phone-select').value;
+            const balanceDiv = document.getElementById('side-current-balance');
+            const profitDiv = document.getElementById('side-total-profit');
+
+            if(!selectedPhone) {
+                balanceDiv.innerText = "0.00";
+                profitDiv.innerText = "0.00";
+                return;
+            }
+
+            const matched = globalPhonesData.find(p => p.phone == selectedPhone);
+            if(matched) {
+                balanceDiv.innerText = parseFloat(matched.currentBalance).toFixed(2);
+                profitDiv.innerText = parseFloat(matched.totalProfit).toFixed(2);
+            }
+        }
+
+        async function handleSubmitTransaction() {
+            const phone = document.getElementById('entry-phone-select').value;
+            const type = document.getElementById('entry-type').value;
+            const amount = document.getElementById('entry-amount').value.trim();
+            const profit = document.getElementById('entry-profit').value.trim();
+
+            if(!phone || !amount || !profit) { alert('الرجاء إدخال كافة تفاصيل العملية متمثلة في الرقم والقيمة والمكسب'); return; }
+
+            showLoader(true);
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    mode: 'cors',
+                    body: JSON.stringify({
+                        action: 'addTransaction',
+                        phone: phone,
+                        type: type,
+                        amount: amount,
+                        profit: profit,
+                        user: currentUser
+                    })
+                });
+                const res = await response.json();
+                showLoader(false);
+                alert(res.message);
+
+                if(res.status === 'success') {
+                    document.getElementById('entry-amount').value = "";
+                    document.getElementById('entry-profit').value = "0";
+                    loadUserInterface(); // لإعادة تحديث الأرصدة الحالية بالقائمة والجانب المالي
+                }
+            } catch (error) {
+                showLoader(false);
+                alert('حدث خطأ أثناء حفظ المعاملة المالية: ' + error);
+            }
+        }
+
+        // --- آليات التصدير إلى إكسيل (CSV مجهز بالترميز العربي الكامل بوم) ---
+        function exportAllToExcel() {
+            if(globalTransactionsData.length === 0) { alert('لا توجد بيانات لعمليات متاحة للتصدير حالياً'); return; }
+            let csvContent = "التاريخ والوقت,رقم الهاتف,النوع,القيمة الكلية للعملية,صافي المكسب,بواسطة الموظف\n";
+            
+            globalTransactionsData.forEach(t => {
+                let d = new Date(t.date);
+                let formattedDate = `${d.toLocaleDateString('ar-EG')} ${d.toLocaleTimeString('ar-EG')}`;
+                csvContent += `"${formattedDate}","${t.phone}","${t.type}",${t.amount},${t.profit},"${t.user}"\n`;
+            });
+
+            downloadCSV(csvContent, `تقرير_العمليات_الشامل_${new Date().toLocaleDateString()}.csv`);
+        }
+
+        function exportSinglePhoneToExcel() {
+            const phone = document.getElementById('export-single-phone-select').value;
+            if(!phone) { alert('الرجاء اختيار رقم هاتف محدد لتصدير كشف حسابه المنفرد'); return; }
+
+            const filteredTrans = globalTransactionsData.filter(t => t.phone == phone);
+            if(filteredTrans.length === 0) { alert('لا توجد عمليات مسجلة لهذا الرقم في النطاق المحدد'); return; }
+
+            let csvContent = `كشف حساب رقم الهاتف: ${phone}\n`;
+            csvContent += "التاريخ والوقت,النوع,القيمة المالية للعملية,المكسب المحقق من المعاملة,بواسطة الموظف\n";
+
+            filteredTrans.forEach(t => {
+                let d = new Date(t.date);
+                let formattedDate = `${d.toLocaleDateString('ar-EG')} ${d.toLocaleTimeString('ar-EG')}`;
+                csvContent += `"${formattedDate}","${t.type}",${t.amount},${t.profit},"${t.user}"\n`;
+            });
+
+            downloadCSV(csvContent, `كشف_حساب_الرقم_${phone}.csv`);
+        }
+
+        function downloadCSV(csvContent, fileName) {
+            // إضافة رمز BOM لضمان قراءة اللغة العربية بشكل سليم تماماً داخل برامج الإكسيل دون تشويه الحروف
+            const blob = new Blob(["\ufeff" + csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.setAttribute("download", fileName);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
+</body>
+</html>
