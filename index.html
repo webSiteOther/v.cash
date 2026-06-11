@@ -246,7 +246,7 @@
             font-size: 14px;
         }
 
-        /* شاشة التحميل المنتشرة */
+        /* شاشة التحميل */
         .loader {
             position: fixed;
             top: 0;
@@ -395,13 +395,13 @@
             </div>
         </div>
 
-        <div class="main-layout">
+        <div style="max-width: 600px; margin: 0 auto;">
             <div class="panel">
                 <div class="panel-title">تسجيل عملية سحب / إيداع جديدة</div>
                 
                 <div class="form-group">
                     <label>اختر رقم الهاتف المالي</label>
-                    <select id="entry-phone-select" onchange="updateUserSideStats()">
+                    <select id="entry-phone-select">
                         <option value="">-- اختر الرقم --</option>
                     </select>
                 </div>
@@ -426,30 +426,15 @@
 
                 <button onclick="handleSubmitTransaction()">حفظ وإرسال العملية للسيستم</button>
             </div>
-
-            <div>
-                <div class="panel" style="border-right: 4px solid var(--accent);">
-                    <div class="panel-title">بيانات حية للرقم المحدد حالياً</div>
-                    <div style="margin-bottom: 15px;">
-                        <label>الرصيد الحالي المتوفر بالرقم:</label>
-                        <div id="side-current-balance" style="font-size: 24px; font-weight: bold; color: var(--success);">0.00</div>
-                    </div>
-                    <div>
-                        <label>إجمالي أرباح هذا الرقم التراكمية:</label>
-                        <div id="side-total-profit" style="font-size: 24px; font-weight: bold; color: #e040fb;">0.00</div>
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
 
     <script>
-        // رابط الأب سكربت الخاص بكِ
+        // الرابط الخاص بـ Web App للمزامنة الفورية
         const API_URL = "https://script.google.com/macros/s/AKfycbzS7vofWxWdCq5-NoQ0bSjBLzL4COoR1hEYy5NaTwdg1vHABuO9Y0G4diwL8F7rp2Z_KA/exec";
         
         let currentUser = "";
         let currentRole = "";
-        let globalPhonesData = []; // لحفظ تفاصيل الأرقام محلياً لتحديث الإحصائيات الجانبية بسرعة
         let globalTransactionsData = [];
 
         function showLoader(show) {
@@ -521,12 +506,10 @@
                 showLoader(false);
 
                 if(res.status === 'success') {
-                    // تحديث الكروت المالية الكلية للفلتر المحدد
                     document.getElementById('metrics-deposit').innerText = res.data.totalDeposit.toFixed(2);
                     document.getElementById('metrics-withdraw').innerText = res.data.totalWithdraw.toFixed(2);
                     document.getElementById('metrics-profit').innerText = res.data.totalProfit.toFixed(2);
 
-                    // بناء جدول الأرصدة الحالية وأرباح كل رقم
                     const phonesSummaryBody = document.getElementById('phones-summary-table').querySelector('tbody');
                     phonesSummaryBody.innerHTML = "";
                     res.data.phonesSummary.forEach(p => {
@@ -539,12 +522,10 @@
                         `;
                     });
 
-                    // بناء سجل المعاملات للفترة المحددة بالشهر
                     const transBody = document.getElementById('transactions-table').querySelector('tbody');
                     transBody.innerHTML = "";
                     globalTransactionsData = res.data.transactions;
                     
-                    // ملء قائمة الاختيار للتصدير المنفرد للأرقام
                     const exportSelect = document.getElementById('export-single-phone-select');
                     exportSelect.innerHTML = '<option value="">اختر رقم لتصديره منفرد</option>';
                     
@@ -613,35 +594,15 @@
                 showLoader(false);
 
                 if(res.status === 'success') {
-                    globalPhonesData = res.data;
                     const select = document.getElementById('entry-phone-select');
                     select.innerHTML = '<option value="">-- اختر الرقم --</option>';
-                    globalPhonesData.forEach(p => {
+                    res.data.forEach(p => {
                         select.innerHTML += `<option value="${p.phone}">${p.phone}</option>`;
                     });
-                    updateUserSideStats();
                 }
             } catch (error) {
                 showLoader(false);
                 alert('خطأ في جلب أرقام التليفونات: ' + error);
-            }
-        }
-
-        function updateUserSideStats() {
-            const selectedPhone = document.getElementById('entry-phone-select').value;
-            const balanceDiv = document.getElementById('side-current-balance');
-            const profitDiv = document.getElementById('side-total-profit');
-
-            if(!selectedPhone) {
-                balanceDiv.innerText = "0.00";
-                profitDiv.innerText = "0.00";
-                return;
-            }
-
-            const matched = globalPhonesData.find(p => p.phone == selectedPhone);
-            if(matched) {
-                balanceDiv.innerText = parseFloat(matched.currentBalance).toFixed(2);
-                profitDiv.innerText = parseFloat(matched.totalProfit).toFixed(2);
             }
         }
 
@@ -674,7 +635,7 @@
                 if(res.status === 'success') {
                     document.getElementById('entry-amount').value = "";
                     document.getElementById('entry-profit').value = "0";
-                    loadUserInterface(); // لإعادة تحديث الأرصدة الحالية بالقائمة والجانب المالي
+                    loadUserInterface();
                 }
             } catch (error) {
                 showLoader(false);
@@ -682,7 +643,7 @@
             }
         }
 
-        // --- آليات التصدير إلى إكسيل (CSV مجهز بالترميز العربي الكامل بوم) ---
+        // --- آليات التصدير إلى إكسيل (CSV + BOM) ---
         function exportAllToExcel() {
             if(globalTransactionsData.length === 0) { alert('لا توجد بيانات لعمليات متاحة للتصدير حالياً'); return; }
             let csvContent = "التاريخ والوقت,رقم الهاتف,النوع,القيمة الكلية للعملية,صافي المكسب,بواسطة الموظف\n";
@@ -716,7 +677,6 @@
         }
 
         function downloadCSV(csvContent, fileName) {
-            // إضافة رمز BOM لضمان قراءة اللغة العربية بشكل سليم تماماً داخل برامج الإكسيل دون تشويه الحروف
             const blob = new Blob(["\ufeff" + csvContent], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement("a");
             const url = URL.createObjectURL(blob);
