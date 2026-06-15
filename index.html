@@ -14,6 +14,7 @@
             --accent: #00adb5;
             --success: #00e676;
             --danger: #ff1744;
+            --warning: #ff9800;
             --border: #3d3d3d;
         }
 
@@ -54,6 +55,7 @@
             max-width: 400px;
             text-align: center;
             border: 1px solid var(--border);
+            margin: 0 auto;
         }
 
         .login-card h2 {
@@ -75,7 +77,7 @@
             font-size: 14px;
         }
 
-        input, select {
+        input[type="text"], input[type="password"], input[type="number"], select {
             width: 100%;
             padding: 12px;
             background: var(--bg-input);
@@ -108,9 +110,17 @@
             opacity: 0.9;
         }
 
-        .btn-secondary {
-            background: #444;
-            margin-top: 10px;
+        .btn-danger { background: var(--danger); }
+        .btn-warning { background: var(--warning); color: #000; }
+        
+        .action-btns {
+            display: flex;
+            gap: 5px;
+        }
+        .action-btns button {
+            padding: 6px 10px;
+            font-size: 12px;
+            width: auto;
         }
 
         /* الهيكل العام للوحة التحكم */
@@ -155,6 +165,7 @@
         .metric-card.deposit { border-right-color: var(--success); }
         .metric-card.withdraw { border-right-color: var(--danger); }
         .metric-card.profit { border-right-color: #e040fb; }
+        .metric-card.cash { border-right-color: var(--warning); }
 
         .metric-title {
             font-size: 14px;
@@ -246,6 +257,13 @@
             font-size: 14px;
         }
 
+        .info-text {
+            font-size: 13px;
+            color: var(--success);
+            margin-top: 5px;
+            display: block;
+        }
+
         /* شاشة التحميل */
         .loader {
             position: fixed;
@@ -306,29 +324,33 @@
                     <option value="11">نوفمبر</option>
                     <option value="12">ديسمبر</option>
                 </select>
-                <button class="export-btn" onclick="exportAllToExcel()">تصدير الحسابات ككل (Excel)</button>
+                <button class="export-btn" onclick="exportAllToExcel()">تصدير العمليات (Excel)</button>
             </div>
         </div>
 
         <div class="metrics-grid">
             <div class="metric-card deposit">
-                <div class="metric-title">إجمالي الإيداعات بالشهر المحدد</div>
+                <div class="metric-title">إجمالي الإيداعات</div>
                 <div class="metric-value" id="metrics-deposit">0.00</div>
             </div>
             <div class="metric-card withdraw">
-                <div class="metric-title">إجمالي السحوبات بالشهر المحدد</div>
+                <div class="metric-title">إجمالي السحوبات</div>
                 <div class="metric-value" id="metrics-withdraw">0.00</div>
             </div>
             <div class="metric-card profit">
                 <div class="metric-title">صافي الأرباح المحققة</div>
                 <div class="metric-value" id="metrics-profit">0.00</div>
             </div>
+            <div class="metric-card cash">
+                <div class="metric-title">السيولة النقدية (صندوق الكاش)</div>
+                <div class="metric-value" id="metrics-cash">0.00</div>
+            </div>
         </div>
 
         <div class="main-layout">
             <div>
                 <div class="panel">
-                    <div class="panel-title">ملخص أرصدة الأرقام وأرباحها الصافية</div>
+                    <div class="panel-title">إدارة أرقام الهواتف (الأرصدة والليميت)</div>
                     <div class="table-container">
                         <table id="phones-summary-table">
                             <thead>
@@ -336,6 +358,8 @@
                                     <th>رقم الهاتف</th>
                                     <th>الرصيد الحالي</th>
                                     <th>صافي أرباح الرقم</th>
+                                    <th>الليميت المتبقي</th>
+                                    <th>إجراءات</th>
                                 </tr>
                             </thead>
                             <tbody></tbody>
@@ -345,9 +369,9 @@
 
                 <div class="panel">
                     <div class="panel-title">
-                        <span>سجل العمليات الأخير للفترة المحددة</span>
+                        <span>سجل العمليات للفترة المحددة</span>
                         <div style="display:flex; gap: 8px;">
-                            <select id="export-single-phone-select"><option value="">اختر رقم لتصديره منفرد</option></select>
+                            <select id="export-single-phone-select"><option value="">اختر رقم لتصديره</option></select>
                             <button class="export-btn" style="padding: 6px 12px;" onclick="exportSinglePhoneToExcel()">تصدير الرقم</button>
                         </div>
                     </div>
@@ -359,6 +383,7 @@
                                     <th>رقم الهاتف</th>
                                     <th>النوع</th>
                                     <th>قيمة العملية</th>
+                                    <th>قيمة الكاش</th>
                                     <th>المكسب</th>
                                     <th>بواسطة</th>
                                 </tr>
@@ -371,16 +396,16 @@
 
             <div>
                 <div class="panel">
-                    <div class="panel-title">إضافة رقم هاتف جديد للسيستم</div>
+                    <div class="panel-title">إضافة رقم هاتف جديد</div>
                     <div class="form-group">
                         <label>رقم الهاتف</label>
                         <input type="text" id="new-phone" placeholder="مثال: 01xxxxxxxxx">
                     </div>
                     <div class="form-group">
-                        <label>الرصيد الافتتاحي (Initial Balance)</label>
+                        <label>الرصيد الافتتاحي</label>
                         <input type="number" id="new-balance" placeholder="0.00">
                     </div>
-                    <button onclick="handleClearanceAndAddPhone()">تسجيل الرقم بالسيستم</button>
+                    <button onclick="handleAddPhone()">تسجيل الرقم بالسيستم</button>
                 </div>
             </div>
         </div>
@@ -401,13 +426,14 @@
                 
                 <div class="form-group">
                     <label>اختر رقم الهاتف المالي</label>
-                    <select id="entry-phone-select">
+                    <select id="entry-phone-select" onchange="handlePhoneSelection()">
                         <option value="">-- اختر الرقم --</option>
                     </select>
+                    <span id="phone-limit-info" class="info-text"></span>
                 </div>
 
                 <div class="form-group">
-                    <label>نوع العملية المجرية</label>
+                    <label>نوع العملية المجراة</label>
                     <select id="entry-type">
                         <option value="ايداع">إيـداع (+)</option>
                         <option value="سحب">سـحب (-)</option>
@@ -415,7 +441,7 @@
                 </div>
 
                 <div class="form-group">
-                    <label>قيمة العملية الكلية (Transaction Amount)</label>
+                    <label>قيمة العملية الكلية (من الليميت)</label>
                     <input type="number" id="entry-amount" placeholder="0.00">
                 </div>
 
@@ -424,18 +450,31 @@
                     <input type="number" id="entry-profit" placeholder="0.00" value="0">
                 </div>
 
+                <div class="form-group" style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px;">
+                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                        <input type="checkbox" id="has-cash-checkbox" style="width: auto;" onchange="toggleCashInput()">
+                        <strong>هل هذه العملية تتضمن استلام/تسليم كاش نقدي؟</strong>
+                    </label>
+                    
+                    <div id="cash-input-wrapper" style="display: none; margin-top: 15px;">
+                        <label>المبلغ النقدي (الكاش)</label>
+                        <input type="number" id="entry-cash" placeholder="0.00" value="0">
+                    </div>
+                </div>
+
                 <button onclick="handleSubmitTransaction()">حفظ وإرسال العملية للسيستم</button>
             </div>
         </div>
     </div>
 
     <script>
-        // الرابط الخاص بـ Web App للمزامنة الفورية
+        // الرابط الجديد الخاص بيكي بعد التعديلات
         const API_URL = "https://script.google.com/macros/s/AKfycbzS7vofWxWdCq5-NoQ0bSjBLzL4COoR1hEYy5NaTwdg1vHABuO9Y0G4diwL8F7rp2Z_KA/exec";
         
         let currentUser = "";
         let currentRole = "";
         let globalTransactionsData = [];
+        let userPhonesData = []; // للاحتفاظ ببيانات الهواتف للمستخدم العادي
 
         function showLoader(show) {
             document.getElementById('loader').style.display = show ? 'flex' : 'none';
@@ -446,7 +485,7 @@
             document.getElementById(viewId).classList.add('active');
         }
 
-        // تسجيل الدخول
+        // --- تسجيل الدخول ---
         async function handleLogin() {
             const user = document.getElementById('username').value.trim();
             const pass = document.getElementById('password').value.trim();
@@ -483,7 +522,6 @@
             }
         }
 
-        // خروج
         function logout() {
             currentUser = "";
             currentRole = "";
@@ -492,7 +530,9 @@
             switchView('login-view');
         }
 
-        // --- وظائف الأدمن ---
+        // ==========================================
+        // وظائف المسؤول (Admin)
+        // ==========================================
         async function loadAdminDashboard() {
             const selectedMonth = document.getElementById('month-filter').value;
             showLoader(true);
@@ -506,33 +546,45 @@
                 showLoader(false);
 
                 if(res.status === 'success') {
+                    // تحديث الإحصائيات
                     document.getElementById('metrics-deposit').innerText = res.data.totalDeposit.toFixed(2);
                     document.getElementById('metrics-withdraw').innerText = res.data.totalWithdraw.toFixed(2);
                     document.getElementById('metrics-profit').innerText = res.data.totalProfit.toFixed(2);
+                    document.getElementById('metrics-cash').innerText = res.data.cashBoxBalance.toFixed(2);
 
+                    // تحديث جدول أرقام التليفونات مع الأزرار الجديدة
                     const phonesSummaryBody = document.getElementById('phones-summary-table').querySelector('tbody');
                     phonesSummaryBody.innerHTML = "";
+                    
                     res.data.phonesSummary.forEach(p => {
                         phonesSummaryBody.innerHTML += `
                             <tr>
                                 <td>${p.phone}</td>
                                 <td>${parseFloat(p.currentBalance).toFixed(2)}</td>
                                 <td style="color:#e040fb; font-weight:bold;">${parseFloat(p.netProfit).toFixed(2)}</td>
+                                <td><span style="color: ${p.remainingLimit < 20000 ? 'var(--danger)' : 'var(--success)'}">${parseFloat(p.remainingLimit).toLocaleString()}</span></td>
+                                <td>
+                                    <div class="action-btns">
+                                        <button class="btn-warning" onclick="handleZeroBalance('${p.phone}')">تصفير</button>
+                                        <button class="btn-danger" onclick="handleDeletePhone('${p.phone}')">حذف</button>
+                                    </div>
+                                </td>
                             </tr>
                         `;
                     });
 
-                    const transBody = document.getElementById('transactions-table').querySelector('tbody');
-                    transBody.innerHTML = "";
-                    globalTransactionsData = res.data.transactions;
-                    
+                    // تحديث قائمة التصدير
                     const exportSelect = document.getElementById('export-single-phone-select');
-                    exportSelect.innerHTML = '<option value="">اختر رقم لتصديره منفرد</option>';
-                    
+                    exportSelect.innerHTML = '<option value="">اختر رقم لتصديره</option>';
                     res.data.phonesSummary.forEach(p => {
                         exportSelect.innerHTML += `<option value="${p.phone}">${p.phone}</option>`;
                     });
 
+                    // تحديث جدول العمليات
+                    globalTransactionsData = res.data.transactions;
+                    const transBody = document.getElementById('transactions-table').querySelector('tbody');
+                    transBody.innerHTML = "";
+                    
                     globalTransactionsData.forEach(t => {
                         const d = new Date(t.date);
                         const formattedDate = `${d.toLocaleDateString('ar-EG')} ${d.toLocaleTimeString('ar-EG')}`;
@@ -542,6 +594,7 @@
                                 <td>${t.phone}</td>
                                 <td><span class="type-badge ${t.type}">${t.type}</span></td>
                                 <td>${t.amount.toFixed(2)}</td>
+                                <td>${t.cashAmount ? t.cashAmount.toFixed(2) : '0.00'}</td>
                                 <td style="color:${t.profit > 0 ? 'var(--success)' : 'var(--text-main)'}">${t.profit.toFixed(2)}</td>
                                 <td>${t.user}</td>
                             </tr>
@@ -554,7 +607,7 @@
             }
         }
 
-        async function handleClearanceAndAddPhone() {
+        async function handleAddPhone() {
             const phone = document.getElementById('new-phone').value.trim();
             const initialBalance = document.getElementById('new-balance').value.trim();
 
@@ -581,7 +634,49 @@
             }
         }
 
-        // --- وظائف مدخل البيانات (User View) ---
+        async function handleDeletePhone(phone) {
+            if(!confirm(`هل أنت متأكد من حذف الرقم ${phone} نهائياً؟ لا يمكن التراجع عن هذا الإجراء.`)) return;
+            
+            showLoader(true);
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    mode: 'cors',
+                    body: JSON.stringify({ action: 'deletePhone', phone: phone })
+                });
+                const res = await response.json();
+                showLoader(false);
+                alert(res.message);
+                if(res.status === 'success') loadAdminDashboard();
+            } catch (error) {
+                showLoader(false);
+                alert('حدث خطأ: ' + error);
+            }
+        }
+
+        async function handleZeroBalance(phone) {
+            if(!confirm(`هل أنت متأكد من تصفير رصيد الرقم ${phone}؟ (ستظل الأرباح والعمليات محفوظة)`)) return;
+            
+            showLoader(true);
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    mode: 'cors',
+                    body: JSON.stringify({ action: 'zeroBalance', phone: phone, user: currentUser })
+                });
+                const res = await response.json();
+                showLoader(false);
+                alert(res.message);
+                if(res.status === 'success') loadAdminDashboard();
+            } catch (error) {
+                showLoader(false);
+                alert('حدث خطأ: ' + error);
+            }
+        }
+
+        // ==========================================
+        // وظائف مدخل البيانات (User)
+        // ==========================================
         async function loadUserInterface() {
             showLoader(true);
             try {
@@ -594,15 +689,41 @@
                 showLoader(false);
 
                 if(res.status === 'success') {
+                    userPhonesData = res.data; // تخزين البيانات محلياً
                     const select = document.getElementById('entry-phone-select');
                     select.innerHTML = '<option value="">-- اختر الرقم --</option>';
-                    res.data.forEach(p => {
+                    userPhonesData.forEach(p => {
                         select.innerHTML += `<option value="${p.phone}">${p.phone}</option>`;
                     });
+                    document.getElementById('phone-limit-info').innerText = "";
                 }
             } catch (error) {
                 showLoader(false);
                 alert('خطأ في جلب أرقام التليفونات: ' + error);
+            }
+        }
+
+        function handlePhoneSelection() {
+            const selectedPhone = document.getElementById('entry-phone-select').value;
+            const infoSpan = document.getElementById('phone-limit-info');
+            
+            if (!selectedPhone) {
+                infoSpan.innerText = "";
+                return;
+            }
+
+            const phoneData = userPhonesData.find(p => p.phone === selectedPhone);
+            if (phoneData) {
+                infoSpan.innerText = `الليميت المتبقي لهذا الرقم خلال الشهر: ${phoneData.remainingLimit.toLocaleString()}`;
+                infoSpan.style.color = phoneData.remainingLimit < 20000 ? 'var(--danger)' : 'var(--success)';
+            }
+        }
+
+        function toggleCashInput() {
+            const isChecked = document.getElementById('has-cash-checkbox').checked;
+            document.getElementById('cash-input-wrapper').style.display = isChecked ? 'block' : 'none';
+            if(!isChecked) {
+                document.getElementById('entry-cash').value = "0";
             }
         }
 
@@ -611,8 +732,15 @@
             const type = document.getElementById('entry-type').value;
             const amount = document.getElementById('entry-amount').value.trim();
             const profit = document.getElementById('entry-profit').value.trim();
+            
+            // حساب الكاش
+            const isCash = document.getElementById('has-cash-checkbox').checked;
+            const cashAmount = isCash ? document.getElementById('entry-cash').value.trim() : "0";
 
-            if(!phone || !amount || !profit) { alert('الرجاء إدخال كافة تفاصيل العملية متمثلة في الرقم والقيمة والمكسب'); return; }
+            if(!phone || !amount || !profit) { 
+                alert('الرجاء إدخال كافة تفاصيل العملية متمثلة في الرقم والقيمة والمكسب'); 
+                return; 
+            }
 
             showLoader(true);
             try {
@@ -625,16 +753,24 @@
                         type: type,
                         amount: amount,
                         profit: profit,
+                        cashAmount: cashAmount,
                         user: currentUser
                     })
                 });
                 const res = await response.json();
                 showLoader(false);
+                
                 alert(res.message);
 
                 if(res.status === 'success') {
+                    // تفريغ الحقول بعد النجاح
                     document.getElementById('entry-amount').value = "";
                     document.getElementById('entry-profit').value = "0";
+                    document.getElementById('has-cash-checkbox').checked = false;
+                    document.getElementById('entry-cash').value = "0";
+                    toggleCashInput();
+                    
+                    // إعادة تحميل واجهة اليوزر عشان يتحدث الليميت
                     loadUserInterface();
                 }
             } catch (error) {
@@ -643,15 +779,18 @@
             }
         }
 
-        // --- آليات التصدير إلى إكسيل (CSV + BOM) ---
+        // ==========================================
+        // آليات التصدير (Excel)
+        // ==========================================
         function exportAllToExcel() {
             if(globalTransactionsData.length === 0) { alert('لا توجد بيانات لعمليات متاحة للتصدير حالياً'); return; }
-            let csvContent = "التاريخ والوقت,رقم الهاتف,النوع,القيمة الكلية للعملية,صافي المكسب,بواسطة الموظف\n";
+            let csvContent = "التاريخ والوقت,رقم الهاتف,النوع,القيمة الكلية للعملية,الكاش,صافي المكسب,بواسطة الموظف\n";
             
             globalTransactionsData.forEach(t => {
                 let d = new Date(t.date);
                 let formattedDate = `${d.toLocaleDateString('ar-EG')} ${d.toLocaleTimeString('ar-EG')}`;
-                csvContent += `"${formattedDate}","${t.phone}","${t.type}",${t.amount},${t.profit},"${t.user}"\n`;
+                let cashStr = t.cashAmount ? t.cashAmount : 0;
+                csvContent += `"${formattedDate}","${t.phone}","${t.type}",${t.amount},${cashStr},${t.profit},"${t.user}"\n`;
             });
 
             downloadCSV(csvContent, `تقرير_العمليات_الشامل_${new Date().toLocaleDateString()}.csv`);
@@ -665,12 +804,13 @@
             if(filteredTrans.length === 0) { alert('لا توجد عمليات مسجلة لهذا الرقم في النطاق المحدد'); return; }
 
             let csvContent = `كشف حساب رقم الهاتف: ${phone}\n`;
-            csvContent += "التاريخ والوقت,النوع,القيمة المالية للعملية,المكسب المحقق من المعاملة,بواسطة الموظف\n";
+            csvContent += "التاريخ والوقت,النوع,القيمة المالية للعملية,الكاش المرتبط,المكسب المحقق من المعاملة,بواسطة الموظف\n";
 
             filteredTrans.forEach(t => {
                 let d = new Date(t.date);
                 let formattedDate = `${d.toLocaleDateString('ar-EG')} ${d.toLocaleTimeString('ar-EG')}`;
-                csvContent += `"${formattedDate}","${t.type}",${t.amount},${t.profit},"${t.user}"\n`;
+                let cashStr = t.cashAmount ? t.cashAmount : 0;
+                csvContent += `"${formattedDate}","${t.type}",${t.amount},${cashStr},${t.profit},"${t.user}"\n`;
             });
 
             downloadCSV(csvContent, `كشف_حساب_الرقم_${phone}.csv`);
