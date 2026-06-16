@@ -88,6 +88,13 @@
             transition: border 0.3s;
         }
 
+        /* إصلاح التاريخ وإجباره على الإنجليزية */
+        input[type="date"] {
+            direction: ltr;
+            text-align: left;
+            font-family: monospace; /* لتوضيح الأرقام */
+        }
+
         input:focus, select:focus { border-color: var(--accent); }
 
         .flex-input-group {
@@ -371,7 +378,6 @@
                         </div>
                     </div>
                     
-                    <!-- أدوات تصفية الجدول -->
                     <div class="flex-actions" style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; flex-wrap: wrap; gap: 15px;">
                         <div class="form-group" style="margin-bottom: 0; flex: 1; min-width: 140px;">
                             <label>تصفية بالرقم</label>
@@ -381,15 +387,15 @@
                         </div>
                         <div class="form-group" style="margin-bottom: 0; flex: 1; min-width: 140px;">
                             <label>يوم محدد</label>
-                            <input type="date" id="filter-date-exact" onchange="applyTransactionsFilter(event)">
+                            <input type="date" id="filter-date-exact" lang="en" onchange="applyTransactionsFilter(event)">
                         </div>
                         <div class="form-group" style="margin-bottom: 0; flex: 1; min-width: 140px;">
                             <label>من تاريخ (نطاق)</label>
-                            <input type="date" id="filter-date-from" onchange="applyTransactionsFilter(event)">
+                            <input type="date" id="filter-date-from" lang="en" onchange="applyTransactionsFilter(event)">
                         </div>
                         <div class="form-group" style="margin-bottom: 0; flex: 1; min-width: 140px;">
                             <label>إلى تاريخ (نطاق)</label>
-                            <input type="date" id="filter-date-to" onchange="applyTransactionsFilter(event)">
+                            <input type="date" id="filter-date-to" lang="en" onchange="applyTransactionsFilter(event)">
                         </div>
                         <div style="display: flex; align-items: flex-end; flex: 1; min-width: 120px; flex-basis: 100%;">
                             <button class="btn-warning" style="padding: 10px 15px; height: 45px; width: 100%;" onclick="clearTransactionsFilter()">إلغاء التصفية وإظهار الكل</button>
