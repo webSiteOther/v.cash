@@ -78,7 +78,7 @@
             font-size: 14px;
         }
 
-        input[type="text"], input[type="password"], input[type="number"], select {
+        input[type="text"], input[type="password"], input[type="number"], input[type="date"], select {
             width: 100%;
             padding: 12px;
             background: var(--bg-input);
@@ -381,6 +381,27 @@
                             <button class="export-btn" style="padding: 6px 12px;" onclick="exportSinglePhoneToExcel()">تصدير الرقم</button>
                         </div>
                     </div>
+                    
+                    <div class="flex-actions" style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; flex-wrap: wrap;">
+                        <div class="form-group" style="margin-bottom: 0; flex: 1; min-width: 150px;">
+                            <label>تصفية بالرقم</label>
+                            <select id="filter-phone" onchange="applyTransactionsFilter()">
+                                <option value="">كل الأرقام</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0; flex: 1; min-width: 150px;">
+                            <label>من تاريخ</label>
+                            <input type="date" id="filter-date-from" onchange="applyTransactionsFilter()">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0; flex: 1; min-width: 150px;">
+                            <label>إلى تاريخ</label>
+                            <input type="date" id="filter-date-to" onchange="applyTransactionsFilter()">
+                        </div>
+                        <div style="display: flex; align-items: flex-end;">
+                            <button class="btn-warning" style="padding: 10px 15px; height: 42px;" onclick="clearTransactionsFilter()">إلغاء التصفية</button>
+                        </div>
+                    </div>
+
                     <div class="table-container">
                         <table id="transactions-table">
                             <thead>
@@ -590,7 +611,7 @@
         }
 
         // ==========================================
-        // وظائف المسؤول (Admin)
+        // وظائف المسؤول (Admin) والتصفية (الفلتر)
         // ==========================================
         async function loadAdminDashboard() {
             const selectedMonth = document.getElementById('month-filter').value;
@@ -617,6 +638,9 @@
                     const adminPhoneSelect = document.getElementById('admin-entry-phone-select');
                     adminPhoneSelect.innerHTML = '<option value="">-- اختر الرقم --</option>';
 
+                    const filterPhoneSelect = document.getElementById('filter-phone');
+                    filterPhoneSelect.innerHTML = '<option value="">كل الأرقام</option>';
+
                     res.data.phonesSummary.forEach(p => {
                         phonesSummaryBody.innerHTML += `
                             <tr>
@@ -633,6 +657,7 @@
                             </tr>
                         `;
                         adminPhoneSelect.innerHTML += `<option value="${p.phone}">${p.phone} (متبقي: ${p.remainingLimit.toLocaleString()})</option>`;
+                        filterPhoneSelect.innerHTML += `<option value="${p.phone}">${p.phone}</option>`;
                     });
 
                     const exportSelect = document.getElementById('export-single-phone-select');
@@ -640,25 +665,64 @@
                     res.data.phonesSummary.forEach(p => { exportSelect.innerHTML += `<option value="${p.phone}">${p.phone}</option>`; });
 
                     globalTransactionsData = res.data.transactions;
-                    const transBody = document.getElementById('transactions-table').querySelector('tbody');
-                    transBody.innerHTML = "";
-                    globalTransactionsData.forEach(t => {
-                        const d = new Date(t.date);
-                        const formattedDate = `${d.toLocaleDateString('ar-EG')} ${d.toLocaleTimeString('ar-EG')}`;
-                        transBody.innerHTML += `
-                            <tr>
-                                <td>${formattedDate}</td>
-                                <td>${t.phone}</td>
-                                <td><span class="type-badge ${t.type}">${t.type}</span></td>
-                                <td>${t.amount.toFixed(2)}</td>
-                                <td>${t.cashAmount ? t.cashAmount.toFixed(2) : '0.00'}</td>
-                                <td style="color:${t.profit > 0 ? 'var(--success)' : (t.profit < 0 ? 'var(--danger)' : 'var(--text-main)')}">${t.profit.toFixed(2)}</td>
-                                <td>${t.user}</td>
-                            </tr>
-                        `;
-                    });
+                    applyTransactionsFilter(); // عرض الجدول مع تطبيق الفلاتر الحالية إن وجدت
                 }
             } catch (error) { showLoader(false); alert('خطأ أثناء تحميل لوحة التحكم: ' + error); }
+        }
+
+        // دالة تصفية ورسم جدول العمليات
+        function applyTransactionsFilter() {
+            const phoneFilter = document.getElementById('filter-phone').value;
+            const dateFrom = document.getElementById('filter-date-from').value;
+            const dateTo = document.getElementById('filter-date-to').value;
+
+            const transBody = document.getElementById('transactions-table').querySelector('tbody');
+            transBody.innerHTML = "";
+
+            let filteredData = globalTransactionsData;
+
+            // تصفية بالرقم
+            if (phoneFilter) {
+                filteredData = filteredData.filter(t => t.phone == phoneFilter);
+            }
+
+            // تصفية بتاريخ البداية
+            if (dateFrom) {
+                const fromDateObj = new Date(dateFrom);
+                fromDateObj.setHours(0, 0, 0, 0);
+                filteredData = filteredData.filter(t => new Date(t.date) >= fromDateObj);
+            }
+
+            // تصفية بتاريخ النهاية
+            if (dateTo) {
+                const toDateObj = new Date(dateTo);
+                toDateObj.setHours(23, 59, 59, 999);
+                filteredData = filteredData.filter(t => new Date(t.date) <= toDateObj);
+            }
+
+            // رسم البيانات بعد التصفية
+            filteredData.forEach(t => {
+                const d = new Date(t.date);
+                const formattedDate = `${d.toLocaleDateString('ar-EG')} ${d.toLocaleTimeString('ar-EG')}`;
+                transBody.innerHTML += `
+                    <tr>
+                        <td>${formattedDate}</td>
+                        <td>${t.phone}</td>
+                        <td><span class="type-badge ${t.type}">${t.type}</span></td>
+                        <td>${t.amount.toFixed(2)}</td>
+                        <td>${t.cashAmount ? t.cashAmount.toFixed(2) : '0.00'}</td>
+                        <td style="color:${t.profit > 0 ? 'var(--success)' : (t.profit < 0 ? 'var(--danger)' : 'var(--text-main)')}">${parseFloat(t.profit).toFixed(2)}</td>
+                        <td>${t.user}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        function clearTransactionsFilter() {
+            document.getElementById('filter-phone').value = "";
+            document.getElementById('filter-date-from').value = "";
+            document.getElementById('filter-date-to').value = "";
+            applyTransactionsFilter();
         }
 
         async function handleAddCash() {
@@ -777,11 +841,9 @@
             const amount = document.getElementById(`${prefix}-entry-amount`).value.trim();
             const isCashUpdated = document.getElementById(`${prefix}-has-cash-checkbox`).checked;
 
-            // حساب المكسب أو الخسارة كقيمة نهائية
             const rawProfit = document.getElementById(`${prefix}-entry-profit`).value.trim();
-            const profitTypeMultipler = parseInt(document.getElementById(`${prefix}-profit-type`).value); // 1 او -1
+            const profitTypeMultipler = parseInt(document.getElementById(`${prefix}-profit-type`).value); 
             
-            // التأكد من إن لو القيمة فاضية يعتبرها 0، ولو فيها قيمة يضربها في المعامل عشان يخليها سالب لو خسارة
             const finalProfit = rawProfit ? (Math.abs(parseFloat(rawProfit)) * profitTypeMultipler).toString() : "0";
 
             if(!phone || !amount || rawProfit === "") { 
@@ -804,7 +866,6 @@
                 alert(res.message);
 
                 if(res.status === 'success') {
-                    // تفريغ الحقول
                     document.getElementById(`${prefix}-entry-amount`).value = "";
                     document.getElementById(`${prefix}-entry-profit`).value = "0";
                     document.getElementById(`${prefix}-profit-type`).value = "1";
