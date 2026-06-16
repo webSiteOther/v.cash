@@ -92,6 +92,19 @@
 
         input:focus, select:focus { border-color: var(--accent); }
 
+        .flex-input-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .flex-input-group select {
+            flex: 1;
+        }
+
+        .flex-input-group input {
+            flex: 2;
+        }
+
         button {
             width: 100%;
             padding: 12px;
@@ -377,7 +390,7 @@
                                     <th>النوع</th>
                                     <th>قيمة العملية</th>
                                     <th>قيمة الكاش</th>
-                                    <th>المكسب</th>
+                                    <th>المكسب/الخسارة</th>
                                     <th>بواسطة</th>
                                 </tr>
                             </thead>
@@ -419,10 +432,18 @@
                         <label>قيمة العملية الكلية</label>
                         <input type="number" id="admin-entry-amount" placeholder="0.00">
                     </div>
+                    
                     <div class="form-group">
-                        <label>قيمة المكسب أو الخسارة (بالسالب)</label>
-                        <input type="number" id="admin-entry-profit" placeholder="0.00" value="0">
+                        <label>نوع وقيمة المكسب / الخسارة</label>
+                        <div class="flex-input-group">
+                            <select id="admin-profit-type">
+                                <option value="1">مكسب (+)</option>
+                                <option value="-1">خسارة (-)</option>
+                            </select>
+                            <input type="number" id="admin-entry-profit" placeholder="0.00" value="0">
+                        </div>
                     </div>
+
                     <div class="form-group" style="background: rgba(255,255,255,0.05); padding: 10px; border-radius: 6px;">
                         <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
                             <input type="checkbox" id="admin-has-cash-checkbox" style="width: auto;">
@@ -482,8 +503,14 @@
                 </div>
 
                 <div class="form-group">
-                    <label>قيمة المكسب أو الخسارة (بالسالب)</label>
-                    <input type="number" id="user-entry-profit" placeholder="0.00" value="0">
+                    <label>نوع وقيمة المكسب / الخسارة</label>
+                    <div class="flex-input-group">
+                        <select id="user-profit-type">
+                            <option value="1">مكسب (+)</option>
+                            <option value="-1">خسارة (-)</option>
+                        </select>
+                        <input type="number" id="user-entry-profit" placeholder="0.00" value="0">
+                    </div>
                 </div>
 
                 <div class="form-group" style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px;">
@@ -499,8 +526,7 @@
     </div>
 
     <script>
-        // *** ضعي رابط الـ API الخاص بك هنا ***
-        const API_URL = "https://script.google.com/macros/s/AKfycbzS7vofWxWdCq5-NoQ0bSjBLzL4COoR1hEYy5NaTwdg1vHABuO9Y0G4diwL8F7rp2Z_KA/exec";
+        const API_URL = "https://script.google.com/macros/s/AKfycbzS7vofWxWdCq5-NoQ0bSjBLzL4COoR1hEYy5NaTwdg1vHABuO9Y0G4diwL8F7rp2Z_KA/exec"; // ضعي الرابط الخاص بيك
         
         let currentUser = "";
         let currentRole = "";
@@ -749,11 +775,17 @@
             const phone = document.getElementById(`${prefix}-entry-phone-select`).value;
             const type = document.getElementById(`${prefix}-entry-type`).value;
             const amount = document.getElementById(`${prefix}-entry-amount`).value.trim();
-            const profit = document.getElementById(`${prefix}-entry-profit`).value.trim();
             const isCashUpdated = document.getElementById(`${prefix}-has-cash-checkbox`).checked;
 
-            if(!phone || !amount || !profit) { 
-                alert('الرجاء إدخال كافة تفاصيل العملية متمثلة في الرقم والقيمة والمكسب'); 
+            // حساب المكسب أو الخسارة كقيمة نهائية
+            const rawProfit = document.getElementById(`${prefix}-entry-profit`).value.trim();
+            const profitTypeMultipler = parseInt(document.getElementById(`${prefix}-profit-type`).value); // 1 او -1
+            
+            // التأكد من إن لو القيمة فاضية يعتبرها 0، ولو فيها قيمة يضربها في المعامل عشان يخليها سالب لو خسارة
+            const finalProfit = rawProfit ? (Math.abs(parseFloat(rawProfit)) * profitTypeMultipler).toString() : "0";
+
+            if(!phone || !amount || rawProfit === "") { 
+                alert('الرجاء إدخال كافة تفاصيل العملية متمثلة في الرقم والقيمة والمكسب/الخسارة'); 
                 return; 
             }
 
@@ -764,7 +796,7 @@
                     body: JSON.stringify({
                         action: 'addTransaction',
                         phone: phone, type: type, amount: amount,
-                        profit: profit, isCashUpdated: isCashUpdated, user: currentUser
+                        profit: finalProfit, isCashUpdated: isCashUpdated, user: currentUser
                     })
                 });
                 const res = await response.json();
@@ -775,6 +807,7 @@
                     // تفريغ الحقول
                     document.getElementById(`${prefix}-entry-amount`).value = "";
                     document.getElementById(`${prefix}-entry-profit`).value = "0";
+                    document.getElementById(`${prefix}-profit-type`).value = "1";
                     document.getElementById(`${prefix}-has-cash-checkbox`).checked = false;
                     
                     if(prefix === 'admin') { loadAdminDashboard(); } 
@@ -788,7 +821,7 @@
         // ==========================================
         function exportAllToExcel() {
             if(globalTransactionsData.length === 0) { alert('لا توجد بيانات لعمليات متاحة للتصدير حالياً'); return; }
-            let csvContent = "التاريخ والوقت,رقم الهاتف,النوع,القيمة الكلية للعملية,الكاش,صافي المكسب,بواسطة الموظف\n";
+            let csvContent = "التاريخ والوقت,رقم الهاتف,النوع,القيمة الكلية للعملية,الكاش,صافي المكسب/الخسارة,بواسطة الموظف\n";
             globalTransactionsData.forEach(t => {
                 let d = new Date(t.date);
                 let formattedDate = `${d.toLocaleDateString('ar-EG')} ${d.toLocaleTimeString('ar-EG')}`;
@@ -805,7 +838,7 @@
             if(filteredTrans.length === 0) { alert('لا توجد عمليات مسجلة لهذا الرقم في النطاق المحدد'); return; }
 
             let csvContent = `كشف حساب رقم الهاتف: ${phone}\n`;
-            csvContent += "التاريخ والوقت,النوع,القيمة المالية للعملية,الكاش المرتبط,المكسب المحقق من المعاملة,بواسطة الموظف\n";
+            csvContent += "التاريخ والوقت,النوع,القيمة المالية للعملية,الكاش المرتبط,المكسب أو الخسارة المحققة,بواسطة الموظف\n";
             filteredTrans.forEach(t => {
                 let d = new Date(t.date);
                 let formattedDate = `${d.toLocaleDateString('ar-EG')} ${d.toLocaleTimeString('ar-EG')}`;
