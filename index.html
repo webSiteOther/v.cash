@@ -88,12 +88,6 @@
             transition: border 0.3s;
         }
 
-        /* إصلاح مشكلة النص المعكوس في التاريخ */
-        input[type="date"] {
-            direction: ltr;
-            text-align: right;
-        }
-
         input:focus, select:focus { border-color: var(--accent); }
 
         .flex-input-group {
@@ -377,6 +371,7 @@
                         </div>
                     </div>
                     
+                    <!-- أدوات تصفية الجدول -->
                     <div class="flex-actions" style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; flex-wrap: wrap; gap: 15px;">
                         <div class="form-group" style="margin-bottom: 0; flex: 1; min-width: 140px;">
                             <label>تصفية بالرقم</label>
@@ -396,8 +391,8 @@
                             <label>إلى تاريخ (نطاق)</label>
                             <input type="date" id="filter-date-to" onchange="applyTransactionsFilter(event)">
                         </div>
-                        <div style="display: flex; align-items: flex-end; flex: 1; min-width: 120px;">
-                            <button class="btn-warning" style="padding: 10px 15px; height: 45px; width: 100%;" onclick="clearTransactionsFilter()">إلغاء التصفية</button>
+                        <div style="display: flex; align-items: flex-end; flex: 1; min-width: 120px; flex-basis: 100%;">
+                            <button class="btn-warning" style="padding: 10px 15px; height: 45px; width: 100%;" onclick="clearTransactionsFilter()">إلغاء التصفية وإظهار الكل</button>
                         </div>
                     </div>
 
@@ -609,9 +604,6 @@
             switchView('login-view');
         }
 
-        // ==========================================
-        // وظائف المسؤول (Admin) والتصفية (الفلتر)
-        // ==========================================
         async function loadAdminDashboard() {
             const selectedMonth = document.getElementById('month-filter').value;
             showLoader(true);
@@ -669,19 +661,16 @@
             } catch (error) { showLoader(false); alert('خطأ أثناء تحميل لوحة التحكم: ' + error); }
         }
 
-        // دالة تصفية ورسم جدول العمليات
         function applyTransactionsFilter(event) {
             const phoneFilter = document.getElementById('filter-phone').value;
             const dateExact = document.getElementById('filter-date-exact').value;
             const dateFrom = document.getElementById('filter-date-from').value;
             const dateTo = document.getElementById('filter-date-to').value;
 
-            // لو اليوزر اختار يوم محدد، نلغي النطاق عشان اللغبطة
             if (dateExact && event && event.target.id === 'filter-date-exact') {
                 document.getElementById('filter-date-from').value = "";
                 document.getElementById('filter-date-to').value = "";
             }
-            // لو اليوزر اختار نطاق، نلغي اليوم المحدد
             if ((dateFrom || dateTo) && event && (event.target.id === 'filter-date-from' || event.target.id === 'filter-date-to')) {
                 document.getElementById('filter-date-exact').value = "";
             }
@@ -691,12 +680,10 @@
 
             let filteredData = globalTransactionsData;
 
-            // تصفية بالرقم
             if (phoneFilter) {
                 filteredData = filteredData.filter(t => t.phone == phoneFilter);
             }
 
-            // تصفية بيوم محدد
             if (document.getElementById('filter-date-exact').value) {
                 const exactDateObj = new Date(document.getElementById('filter-date-exact').value);
                 const nextDayObj = new Date(exactDateObj);
@@ -707,7 +694,6 @@
                     return d >= exactDateObj && d < nextDayObj;
                 });
             } else {
-                // تصفية بتاريخ البداية والنهاية
                 if (document.getElementById('filter-date-from').value) {
                     const fromDateObj = new Date(document.getElementById('filter-date-from').value);
                     fromDateObj.setHours(0, 0, 0, 0);
@@ -720,7 +706,6 @@
                 }
             }
 
-            // رسم البيانات بعد التصفية
             filteredData.forEach(t => {
                 const d = new Date(t.date);
                 const formattedDate = `${d.toLocaleDateString('ar-EG')} ${d.toLocaleTimeString('ar-EG')}`;
@@ -833,9 +818,6 @@
             } catch (error) { showLoader(false); alert('حدث خطأ: ' + error); }
         }
 
-        // ==========================================
-        // وظائف العمليات المشتركة (يوزر وأدمن)
-        // ==========================================
         async function loadUserInterface() {
             showLoader(true);
             try {
@@ -898,9 +880,6 @@
             } catch (error) { showLoader(false); alert('حدث خطأ أثناء حفظ المعاملة المالية: ' + error); }
         }
 
-        // ==========================================
-        // آليات التصدير (Excel)
-        // ==========================================
         function exportAllToExcel() {
             if(globalTransactionsData.length === 0) { alert('لا توجد بيانات لعمليات متاحة للتصدير حالياً'); return; }
             let csvContent = "التاريخ والوقت,رقم الهاتف,النوع,القيمة الكلية للعملية,الكاش,صافي المكسب/الخسارة,بواسطة الموظف\n";
