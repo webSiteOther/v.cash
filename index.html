@@ -476,7 +476,7 @@
                             <span>هل هذه العملية خاصة بتـاجـر؟ (معلّقـة)</span>
                         </label>
                         <div id="admin-merchant-wrapper" style="display: none; margin-top: 10px;">
-                            <label>اسم التاجر والمستحقات المترتبة</label>
+                            <label>اسم التاجر</label>
                             <input type="text" id="admin-merchant-name" placeholder="ادخل اسم التاجر بالكامل">
                         </div>
                     </div>
@@ -575,7 +575,6 @@
     </div>
 
     <script>
-        // الرابط الخاص بنشر كود الـ Web App من الـ Apps Script
         const API_URL = "https://script.google.com/macros/s/AKfycbzS7vofWxWdCq5-NoQ0bSjBLzL4COoR1hEYy5NaTwdg1vHABuO9Y0G4diwL8F7rp2Z_KA/exec"; 
         
         let currentUser = "";
@@ -601,21 +600,16 @@
         function toggleMerchantInput(prefix) {
             const isMerchant = document.getElementById(`${prefix}-is-merchant-checkbox`).checked;
             document.getElementById(`${prefix}-merchant-wrapper`).style.display = isMerchant ? 'block' : 'none';
-            // اخفاء مربع الكاش لو هي عملية تاجر معلقة لأن الكاش لا يتأثر إلا بعد الموافقة
             document.getElementById(`${prefix}-cash-box-wrapper`).style.display = isMerchant ? 'none' : 'block';
         }
 
         function handleMonthFilterChange() {
-            if(document.getElementById('month-filter').value !== "") {
-                document.getElementById('dashboard-date-filter').value = ""; // إلغاء فلتر اليوم المحدد لمنع التضارب
-            }
+            if(document.getElementById('month-filter').value !== "") document.getElementById('dashboard-date-filter').value = "";
             loadAdminDashboard();
         }
 
         function handleExactDateFilterChange() {
-            if(document.getElementById('dashboard-date-filter').value !== "") {
-                document.getElementById('month-filter').value = ""; // إلغاء فلتر الشهر لمنع التضارب
-            }
+            if(document.getElementById('dashboard-date-filter').value !== "") document.getElementById('month-filter').value = "";
             loadAdminDashboard();
         }
 
@@ -671,7 +665,6 @@
                 showLoader(false);
 
                 if(res.status === 'success') {
-                    // تحديث المربعات العلوية الذكية
                     document.getElementById('metrics-deposit').innerText = res.data.totalDeposit.toFixed(2);
                     document.getElementById('metrics-withdraw').innerText = res.data.totalWithdraw.toFixed(2);
                     document.getElementById('metrics-profit').innerText = res.data.totalProfit.toFixed(2);
@@ -679,7 +672,6 @@
                     document.getElementById('metrics-wallets').innerText = res.data.totalWalletsBalance.toFixed(2);
                     document.getElementById('metrics-all-accounts').innerText = res.data.allAccountsBalance.toFixed(2);
 
-                    // تحديث جدول أرقام الهواتف والليميت المخصص
                     const phonesSummaryBody = document.getElementById('phones-summary-table').querySelector('tbody');
                     phonesSummaryBody.innerHTML = "";
                     
@@ -693,13 +685,14 @@
                         phonesSummaryBody.innerHTML += `
                             <tr>
                                 <td><strong>${p.phone}</strong></td>
-                                <td>${parseFloat(p.currentBalance).toFixed(2)}</td>
+                                <td><strong>${parseFloat(p.currentBalance).toFixed(2)}</strong></td>
                                 <td style="color:#e040fb; font-weight:bold;">${parseFloat(p.netProfit).toFixed(2)}</td>
                                 <td style="color:var(--info); font-weight:bold;">${parseFloat(p.customLimit).toLocaleString()}</td>
                                 <td><span style="color: ${p.remainingLimit < 20000 ? 'var(--danger)' : 'var(--success)'}">${parseFloat(p.remainingLimit).toLocaleString()}</span></td>
                                 <td>
                                     <div class="action-btns">
-                                        <button class="btn-success" style="color:white;" onclick="handleUpdateLimit('${p.phone}')">تعديل الليميت</button>
+                                        <button class="btn-success" style="color:white;" onclick="handleUpdateBalance('${p.phone}')">تعديل الرصيد</button>
+                                        <button class="btn-success" style="color:white; background:#0288d1;" onclick="handleUpdateLimit('${p.phone}')">الليميت</button>
                                         <button class="btn-warning" onclick="handleZeroBalance('${p.phone}')">تصفير</button>
                                         <button class="btn-danger" onclick="handleDeletePhone('${p.phone}')">حذف</button>
                                     </div>
@@ -714,7 +707,6 @@
                     exportSelect.innerHTML = '<option value="">اختر رقم لتصديره</option>';
                     res.data.phonesSummary.forEach(p => { exportSelect.innerHTML += `<option value="${p.phone}">${p.phone}</option>`; });
 
-                    // بناء وعرض جدول طلبات التجار المعلقة والعمليات المعزولة
                     const pendingBody = document.getElementById('pending-merchant-table').querySelector('tbody');
                     pendingBody.innerHTML = "";
                     if(res.data.pendingRequests.length === 0) {
@@ -749,6 +741,25 @@
             } catch (error) { showLoader(false); alert('خطأ أثناء تحميل لوحة التحكم: ' + error); }
         }
 
+        // دالة التعديل اليدوي على الرصيد الحالي بعد التصفير أو في العموم
+        async function handleUpdateBalance(phone) {
+            const newBalance = prompt(`أدخل رصيد محفظة الرقم الجديد يدويًا ${phone}:`);
+            if (newBalance === null) return;
+            if (newBalance.trim() === "" || isNaN(newBalance)) { alert("الرجاء إدخال رقم رصيد صحيح"); return; }
+
+            showLoader(true);
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST', mode: 'cors',
+                    body: JSON.stringify({ action: 'updatePhoneBalance', phone: phone, newBalance: newBalance })
+                });
+                const res = await response.json();
+                showLoader(false);
+                alert(res.message);
+                if(res.status === 'success') loadAdminDashboard();
+            } catch (error) { showLoader(false); alert('حدث خطأ: ' + error); }
+        }
+
         async function handleUpdateLimit(phone) {
             const newLimit = prompt(`أدخل الليميت الشهري الجديد المخصص للرقم ${phone}:`);
             if (newLimit === null) return;
@@ -768,7 +779,7 @@
         }
 
         async function approveMerchantRequest(requestId) {
-            if(!confirm("هل أنت متأكد من تسييل واعتماد هذه العملية؟ سيتم ترحيل الأرصدة والكاش فوراً للسيستم الرسمي.")) return;
+            if(!confirm("هل أنت متأكد من اعتماد هذه العملية؟ سيتم ترحيل الأرصدة والكاش فوراً.")) return;
             showLoader(true);
             try {
                 const response = await fetch(API_URL, {
@@ -1010,7 +1021,6 @@
                 alert(res.message);
 
                 if(res.status === 'success') {
-                    // تفريغ وتصفير المدخلات
                     document.getElementById(`${prefix}-entry-amount`).value = "";
                     document.getElementById(`${prefix}-entry-profit`).value = "0";
                     document.getElementById(`${prefix}-profit-type`).value = "1";
