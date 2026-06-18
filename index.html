@@ -43,9 +43,7 @@
             display: none;
         }
 
-        .active {
-            display: block;
-        }
+        .active { display: block; }
 
         .login-card {
             background: var(--bg-card);
@@ -59,10 +57,7 @@
             margin: 0 auto;
         }
 
-        .login-card h2 {
-            margin-bottom: 24px;
-            font-weight: 600;
-        }
+        .login-card h2 { margin-bottom: 24px; font-weight: 600; }
 
         .form-group {
             margin-bottom: 20px;
@@ -88,11 +83,10 @@
             transition: border 0.3s;
         }
 
-        /* إصلاح التاريخ وإجباره على الإنجليزية */
+        /* حماية حقول التاريخ من الانعكاس البرمجي في المتصفح وجعلها تظهر بالإنجليزية */
         input[type="date"] {
             direction: ltr;
             text-align: left;
-            font-family: monospace; /* لتوضيح الأرقام */
         }
 
         input:focus, select:focus { border-color: var(--accent); }
@@ -101,7 +95,6 @@
             display: flex;
             gap: 10px;
         }
-
         .flex-input-group select { flex: 1; }
         .flex-input-group input { flex: 2; }
 
@@ -117,11 +110,11 @@
             cursor: pointer;
             transition: opacity 0.3s;
         }
-
         button:hover { opacity: 0.9; }
 
         .btn-danger { background: var(--danger); }
         .btn-warning { background: var(--warning); color: #000; }
+        .btn-success { background: var(--success); }
         
         .action-btns {
             display: flex;
@@ -169,7 +162,6 @@
             border: 1px solid var(--border);
             border-right: 4px solid var(--accent);
         }
-
         .metric-card.deposit { border-right-color: var(--success); }
         .metric-card.withdraw { border-right-color: var(--danger); }
         .metric-card.profit { border-right-color: #e040fb; }
@@ -177,12 +169,7 @@
         .metric-card.wallets { border-right-color: var(--info); }
         .metric-card.all-accounts { border-right-color: var(--purple); }
 
-        .metric-title {
-            font-size: 14px;
-            color: var(--text-muted);
-            margin-bottom: 8px;
-        }
-
+        .metric-title { font-size: 14px; color: var(--text-muted); margin-bottom: 8px; }
         .metric-value { font-size: 22px; font-weight: bold; }
 
         .main-layout {
@@ -190,7 +177,6 @@
             grid-template-columns: 2fr 1fr;
             gap: 30px;
         }
-
         @media (max-width: 900px) { .main-layout { grid-template-columns: 1fr; } }
 
         .panel {
@@ -219,13 +205,11 @@
             border-collapse: collapse;
             text-align: right;
         }
-
         th, td {
             padding: 12px;
             border-bottom: 1px solid var(--border);
             font-size: 14px;
         }
-
         th {
             background: var(--bg-main);
             color: var(--text-muted);
@@ -240,7 +224,6 @@
             font-size: 12px;
             font-weight: bold;
         }
-
         .type-badge.ايداع { background: rgba(0, 230, 118, 0.15); color: var(--success); }
         .type-badge.سحب { background: rgba(255, 23, 68, 0.15); color: var(--danger); }
 
@@ -249,7 +232,6 @@
             gap: 10px;
             margin-bottom: 20px;
         }
-
         .flex-actions select, .flex-actions input {
             width: auto;
             min-width: 150px;
@@ -300,25 +282,26 @@
             </div>
         </div>
 
-        <div class="panel">
-            <div class="panel-title">تصفية واستخراج البيانات الكلية</div>
-            <div class="flex-actions">
-                <select id="month-filter" onchange="loadAdminDashboard()">
-                    <option value="">كل الأشهر</option>
-                    <option value="1">يناير</option>
-                    <option value="2">فبراير</option>
-                    <option value="3">مارس</option>
-                    <option value="4">أبريل</option>
-                    <option value="5">مايو</option>
-                    <option value="6">يونيو</option>
-                    <option value="7">يوليو</option>
-                    <option value="8">أغسطس</option>
-                    <option value="9">سبتمبر</option>
-                    <option value="10">أكتوبر</option>
-                    <option value="11">نوفمبر</option>
-                    <option value="12">ديسمبر</option>
-                </select>
-                <button class="export-btn" onclick="exportAllToExcel()">تصدير العمليات (Excel)</button>
+        <div class="panel" style="border-color: var(--accent);">
+            <div class="panel-title">تصفية واستخراج المؤشرات الكلية (المربعات العلوية والتقارير)</div>
+            <div class="flex-actions" style="flex-wrap: wrap; gap: 15px;">
+                <div style="display:flex; flex-direction:column; gap:5px;">
+                    <label style="font-size:12px;">تصفية بالشهر الكلي</label>
+                    <select id="month-filter" onchange="handleMonthFilterChange()">
+                        <option value="">كل الأشهر</option>
+                        <option value="1">يناير</option><option value="2">فبراير</option><option value="3">مارس</option>
+                        <option value="4">أبريل</option><option value="5">مايو</option><option value="6">يونيو</option>
+                        <option value="7">يوليو</option><option value="8">أغسطس</option><option value="9">سبتمبر</option>
+                        <option value="10">أكتوبر</option><option value="11">نوفمبر</option><option value="12">ديسمبر</option>
+                    </select>
+                </div>
+                <div style="display:flex; flex-direction:column; gap:5px;">
+                    <label style="font-size:12px;">أو تصفية بيوم محدد ثابت للمربعات</label>
+                    <input type="date" id="dashboard-date-filter" lang="en" onchange="handleExactDateFilterChange()">
+                </div>
+                <div style="display: flex; align-items: flex-end;">
+                    <button class="export-btn" style="height:45px;" onclick="exportAllToExcel()">تصدير العمليات (Excel)</button>
+                </div>
             </div>
         </div>
 
@@ -328,15 +311,15 @@
                 <div class="metric-value" id="metrics-wallets">0.00</div>
             </div>
             <div class="metric-card all-accounts">
-                <div class="metric-title">كل الحسابات</div>
+                <div class="metric-title">كل الحسابات (محافظ+نقدي)</div>
                 <div class="metric-value" id="metrics-all-accounts">0.00</div>
             </div>
             <div class="metric-card cash">
-                <div class="metric-title">صندوق الكاش</div>
+                <div class="metric-title">صندوق الكاش (السيولة النقدية)</div>
                 <div class="metric-value" id="metrics-cash">0.00</div>
             </div>
             <div class="metric-card profit">
-                <div class="metric-title">صافي الأرباح</div>
+                <div class="metric-title">صافي الأرباح المحققة</div>
                 <div class="metric-value" id="metrics-profit">0.00</div>
             </div>
             <div class="metric-card deposit">
@@ -351,15 +334,37 @@
 
         <div class="main-layout">
             <div>
+                <div class="panel" style="border: 2px solid var(--purple);">
+                    <div class="panel-title" style="color: var(--purple); font-weight: bold;">طلبـات التجـار والعمليـات المعلّقـة (في انتظار الموافقة ✔)</div>
+                    <div class="table-container">
+                        <table id="pending-merchant-table">
+                            <thead>
+                                <tr>
+                                    <th>التاريخ</th>
+                                    <th>الرقم المالي</th>
+                                    <th>النوع</th>
+                                    <th>قيمة العملية</th>
+                                    <th>المكسب/الخسارة</th>
+                                    <th>اسم التاجر</th>
+                                    <th>بواسطة</th>
+                                    <th>إجراءات الإعتماد</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+
                 <div class="panel">
-                    <div class="panel-title">إدارة أرقام الهواتف (الأرصدة والليميت)</div>
+                    <div class="panel-title">إدارة أرقام الهواتف (الأرصدة والليميت المخصص)</div>
                     <div class="table-container">
                         <table id="phones-summary-table">
                             <thead>
                                 <tr>
                                     <th>رقم الهاتف</th>
                                     <th>الرصيد الحالي</th>
-                                    <th>صافي أرباح الرقم</th>
+                                    <th>أرباح الرقم</th>
+                                    <th>الليميت الكلي</th>
                                     <th>الليميت المتبقي</th>
                                     <th>إجراءات</th>
                                 </tr>
@@ -371,7 +376,7 @@
 
                 <div class="panel">
                     <div class="panel-title">
-                        <span>سجل العمليات للفترة المحددة</span>
+                        <span>سجل العمليات التاريخي الرئيسي</span>
                         <div style="display:flex; gap: 8px;">
                             <select id="export-single-phone-select"><option value="">اختر رقم لتصديره</option></select>
                             <button class="export-btn" style="padding: 6px 12px;" onclick="exportSinglePhoneToExcel()">تصدير الرقم</button>
@@ -386,19 +391,19 @@
                             </select>
                         </div>
                         <div class="form-group" style="margin-bottom: 0; flex: 1; min-width: 140px;">
-                            <label>يوم محدد</label>
+                            <label>يوم محدد بالسجل</label>
                             <input type="date" id="filter-date-exact" lang="en" onchange="applyTransactionsFilter(event)">
                         </div>
                         <div class="form-group" style="margin-bottom: 0; flex: 1; min-width: 140px;">
-                            <label>من تاريخ (نطاق)</label>
+                            <label>من تاريخ</label>
                             <input type="date" id="filter-date-from" lang="en" onchange="applyTransactionsFilter(event)">
                         </div>
                         <div class="form-group" style="margin-bottom: 0; flex: 1; min-width: 140px;">
-                            <label>إلى تاريخ (نطاق)</label>
+                            <label>إلى تاريخ</label>
                             <input type="date" id="filter-date-to" lang="en" onchange="applyTransactionsFilter(event)">
                         </div>
                         <div style="display: flex; align-items: flex-end; flex: 1; min-width: 120px; flex-basis: 100%;">
-                            <button class="btn-warning" style="padding: 10px 15px; height: 45px; width: 100%;" onclick="clearTransactionsFilter()">إلغاء التصفية وإظهار الكل</button>
+                            <button class="btn-warning" style="padding: 10px 15px; height: 45px; width: 100%;" onclick="clearTransactionsFilter()">إلغاء تصفية الجدول وإظهار الكل</button>
                         </div>
                     </div>
 
@@ -426,7 +431,7 @@
                     <div class="panel-title" style="color: var(--warning);">إدارة صندوق النقدية (الكاش)</div>
                     <div class="form-group">
                         <label>إضافة نقدية يدوية للصندوق</label>
-                        <input type="number" id="admin-cash-add" placeholder="المبلغ المراد إضافته للصندوق">
+                        <input type="number" id="admin-cash-add" placeholder="المبلغ المراد إضافته">
                     </div>
                     <div class="flex-actions" style="margin-bottom:0;">
                         <button onclick="handleAddCash()" style="background: var(--warning); color:#000;">إضافة نقدية</button>
@@ -435,7 +440,7 @@
                 </div>
 
                 <div class="panel">
-                    <div class="panel-title">إجراء معاملة (سحب / إيداع)</div>
+                    <div class="panel-title">إجراء معاملة حقيقية أو طلب تاجر معلق</div>
                     <div class="form-group">
                         <label>اختر رقم الهاتف المالي</label>
                         <select id="admin-entry-phone-select">
@@ -465,26 +470,41 @@
                         </div>
                     </div>
 
-                    <div class="form-group" style="background: rgba(255,255,255,0.05); padding: 10px; border-radius: 6px;">
+                    <div class="form-group" style="background: rgba(156, 39, 176, 0.1); padding: 12px; border: 1px solid var(--purple); border-radius: 6px; margin-bottom: 15px;">
+                        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-weight: bold; color: #e040fb;">
+                            <input type="checkbox" id="admin-is-merchant-checkbox" style="width: auto;" onchange="toggleMerchantInput('admin')">
+                            <span>هل هذه العملية خاصة بتـاجـر؟ (معلّقـة)</span>
+                        </label>
+                        <div id="admin-merchant-wrapper" style="display: none; margin-top: 10px;">
+                            <label>اسم التاجر والمستحقات المترتبة</label>
+                            <input type="text" id="admin-merchant-name" placeholder="ادخل اسم التاجر بالكامل">
+                        </div>
+                    </div>
+
+                    <div class="form-group" id="admin-cash-box-wrapper" style="background: rgba(255,255,255,0.05); padding: 10px; border-radius: 6px;">
                         <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
                             <input type="checkbox" id="admin-has-cash-checkbox" style="width: auto;">
-                            <strong id="admin-cash-label-text">هل تم سحب مال من النقدي؟ (بخصم قيمة العملية من الصندوق)</strong>
+                            <strong id="admin-cash-label-text">هل تم سحب مال من النقدي؟</strong>
                         </label>
                     </div>
-                    <button onclick="handleSubmitTransaction('admin')">تنفيذ العملية</button>
+                    <button onclick="handleSubmitTransaction('admin')">تنفيذ وإرسال العملية</button>
                 </div>
 
                 <div class="panel">
-                    <div class="panel-title">إضافة رقم هاتف جديد للسيستم</div>
+                    <div class="panel-title">إضافة رقم هاتف بالليميت المخصص</div>
                     <div class="form-group">
-                        <label>رقم الهاتف</label>
+                        <label>رقم الهاتف الجديد</label>
                         <input type="text" id="new-phone" placeholder="مثال: 01xxxxxxxxx">
                     </div>
                     <div class="form-group">
-                        <label>الرصيد الافتتاحي</label>
+                        <label>الرصيد الافتتاحي للمحفظة</label>
                         <input type="number" id="new-balance" placeholder="0.00">
                     </div>
-                    <button onclick="handleAddPhone()">تسجيل الرقم</button>
+                    <div class="form-group">
+                        <label>الليميت الشهري المخصص لهذا الرقم</label>
+                        <input type="number" id="new-limit" placeholder="مثال: 200000" value="200000">
+                    </div>
+                    <button onclick="handleAddPhone()">تسجيل المحفظة بالسيستم</button>
                 </div>
             </div>
         </div>
@@ -492,7 +512,7 @@
 
     <div class="container" id="entry-view">
         <div class="dashboard-header">
-            <h2>شاشة إدخال البيانات والعمليات</h2>
+            <h2>شاشة إدخال البيانات والعمليات (كاشير)</h2>
             <div class="user-info">
                 <span>مرحباً، <strong id="logged-username"></strong></span>
                 <button class="logout-btn" onclick="logout()">خروج</button>
@@ -509,7 +529,6 @@
                         <option value="">-- اختر الرقم --</option>
                     </select>
                 </div>
-
                 <div class="form-group">
                     <label>نوع العملية المجراة</label>
                     <select id="user-entry-type" onchange="updateCashCheckboxLabel('user')">
@@ -517,12 +536,10 @@
                         <option value="سحب">سـحب (-)</option>
                     </select>
                 </div>
-
                 <div class="form-group">
                     <label>قيمة العملية الكلية (من الليميت)</label>
                     <input type="number" id="user-entry-amount" placeholder="0.00">
                 </div>
-
                 <div class="form-group">
                     <label>نوع وقيمة المكسب / الخسارة</label>
                     <div class="flex-input-group">
@@ -534,10 +551,21 @@
                     </div>
                 </div>
 
-                <div class="form-group" style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px;">
+                <div class="form-group" style="background: rgba(156, 39, 176, 0.1); padding: 12px; border: 1px solid var(--purple); border-radius: 8px; margin-bottom: 15px;">
+                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-weight: bold; color: #e040fb;">
+                        <input type="checkbox" id="user-is-merchant-checkbox" style="width: auto;" onchange="toggleMerchantInput('user')">
+                        <span>هل هذه العملية خاصة بتـاجـر؟ (ستكون معلقة)</span>
+                    </label>
+                    <div id="user-merchant-wrapper" style="display: none; margin-top: 10px;">
+                        <label>اسم التاجر</label>
+                        <input type="text" id="user-merchant-name" placeholder="ادخل اسم التاجر بالكامل">
+                    </div>
+                </div>
+
+                <div class="form-group" id="user-cash-box-wrapper" style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px;">
                     <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
                         <input type="checkbox" id="user-has-cash-checkbox" style="width: auto;">
-                        <strong id="user-cash-label-text">هل تم سحب مال من النقدي؟ (بخصم قيمة العملية من الصندوق)</strong>
+                        <strong id="user-cash-label-text">هل تم سحب مال من النقدي؟</strong>
                     </label>
                 </div>
 
@@ -547,12 +575,12 @@
     </div>
 
     <script>
+        // الرابط الخاص بنشر كود الـ Web App من الـ Apps Script
         const API_URL = "https://script.google.com/macros/s/AKfycbzS7vofWxWdCq5-NoQ0bSjBLzL4COoR1hEYy5NaTwdg1vHABuO9Y0G4diwL8F7rp2Z_KA/exec"; 
         
         let currentUser = "";
         let currentRole = "";
         let globalTransactionsData = [];
-        let userPhonesData = []; 
 
         function showLoader(show) { document.getElementById('loader').style.display = show ? 'flex' : 'none'; }
         function switchView(viewId) {
@@ -566,8 +594,29 @@
             if (type === 'ايداع') {
                 labelElement.innerText = "هل تم سحب مال من النقدي؟ (بخصم قيمة العملية من الصندوق)";
             } else {
-                labelElement.innerText = "هل تم عمل إيداع للنقدي؟ (بإضافة قيمة العملية للصندوق)";
+                labelElement.innerText = "هل تم عمل إيداع للنقدي؟ (بإضافة قيمة المعاملة للصندوق)";
             }
+        }
+
+        function toggleMerchantInput(prefix) {
+            const isMerchant = document.getElementById(`${prefix}-is-merchant-checkbox`).checked;
+            document.getElementById(`${prefix}-merchant-wrapper`).style.display = isMerchant ? 'block' : 'none';
+            // اخفاء مربع الكاش لو هي عملية تاجر معلقة لأن الكاش لا يتأثر إلا بعد الموافقة
+            document.getElementById(`${prefix}-cash-box-wrapper`).style.display = isMerchant ? 'none' : 'block';
+        }
+
+        function handleMonthFilterChange() {
+            if(document.getElementById('month-filter').value !== "") {
+                document.getElementById('dashboard-date-filter').value = ""; // إلغاء فلتر اليوم المحدد لمنع التضارب
+            }
+            loadAdminDashboard();
+        }
+
+        function handleExactDateFilterChange() {
+            if(document.getElementById('dashboard-date-filter').value !== "") {
+                document.getElementById('month-filter').value = ""; // إلغاء فلتر الشهر لمنع التضارب
+            }
+            loadAdminDashboard();
         }
 
         async function handleLogin() {
@@ -598,9 +647,7 @@
                         updateCashCheckboxLabel('user');
                     }
                 } else { alert(res.message); }
-            } catch (error) {
-                showLoader(false); alert('خطأ في الاتصال بالسيستم: ' + error);
-            }
+            } catch (error) { showLoader(false); alert('خطأ في الاتصال بالسيستم: ' + error); }
         }
 
         function logout() {
@@ -612,16 +659,19 @@
 
         async function loadAdminDashboard() {
             const selectedMonth = document.getElementById('month-filter').value;
+            const exactDate = document.getElementById('dashboard-date-filter').value;
+
             showLoader(true);
             try {
                 const response = await fetch(API_URL, {
                     method: 'POST', mode: 'cors',
-                    body: JSON.stringify({ action: 'getDashboardData', month: selectedMonth })
+                    body: JSON.stringify({ action: 'getDashboardData', month: selectedMonth, exactDate: exactDate })
                 });
                 const res = await response.json();
                 showLoader(false);
 
                 if(res.status === 'success') {
+                    // تحديث المربعات العلوية الذكية
                     document.getElementById('metrics-deposit').innerText = res.data.totalDeposit.toFixed(2);
                     document.getElementById('metrics-withdraw').innerText = res.data.totalWithdraw.toFixed(2);
                     document.getElementById('metrics-profit').innerText = res.data.totalProfit.toFixed(2);
@@ -629,6 +679,7 @@
                     document.getElementById('metrics-wallets').innerText = res.data.totalWalletsBalance.toFixed(2);
                     document.getElementById('metrics-all-accounts').innerText = res.data.allAccountsBalance.toFixed(2);
 
+                    // تحديث جدول أرقام الهواتف والليميت المخصص
                     const phonesSummaryBody = document.getElementById('phones-summary-table').querySelector('tbody');
                     phonesSummaryBody.innerHTML = "";
                     
@@ -641,12 +692,14 @@
                     res.data.phonesSummary.forEach(p => {
                         phonesSummaryBody.innerHTML += `
                             <tr>
-                                <td>${p.phone}</td>
+                                <td><strong>${p.phone}</strong></td>
                                 <td>${parseFloat(p.currentBalance).toFixed(2)}</td>
                                 <td style="color:#e040fb; font-weight:bold;">${parseFloat(p.netProfit).toFixed(2)}</td>
+                                <td style="color:var(--info); font-weight:bold;">${parseFloat(p.customLimit).toLocaleString()}</td>
                                 <td><span style="color: ${p.remainingLimit < 20000 ? 'var(--danger)' : 'var(--success)'}">${parseFloat(p.remainingLimit).toLocaleString()}</span></td>
                                 <td>
                                     <div class="action-btns">
+                                        <button class="btn-success" style="color:white;" onclick="handleUpdateLimit('${p.phone}')">تعديل الليميت</button>
                                         <button class="btn-warning" onclick="handleZeroBalance('${p.phone}')">تصفير</button>
                                         <button class="btn-danger" onclick="handleDeletePhone('${p.phone}')">حذف</button>
                                     </div>
@@ -661,10 +714,87 @@
                     exportSelect.innerHTML = '<option value="">اختر رقم لتصديره</option>';
                     res.data.phonesSummary.forEach(p => { exportSelect.innerHTML += `<option value="${p.phone}">${p.phone}</option>`; });
 
+                    // بناء وعرض جدول طلبات التجار المعلقة والعمليات المعزولة
+                    const pendingBody = document.getElementById('pending-merchant-table').querySelector('tbody');
+                    pendingBody.innerHTML = "";
+                    if(res.data.pendingRequests.length === 0) {
+                        pendingBody.innerHTML = `<tr><td colspan="8" style="text-align:center; color:var(--text-muted);">لا توجد عمليات معلقة حالياً في انتظار الاعتماد</td></tr>`;
+                    } else {
+                        res.data.pendingRequests.forEach(req => {
+                            const d = new Date(req.date);
+                            const fDate = `${d.toLocaleDateString('ar-EG')} ${d.toLocaleTimeString('ar-EG')}`;
+                            pendingBody.innerHTML += `
+                                <tr style="background: rgba(156, 39, 176, 0.05); border: 1px solid rgba(156, 39, 176, 0.3);">
+                                    <td>${fDate}</td>
+                                    <td><strong>${req.phone}</strong></td>
+                                    <td><span class="type-badge ${req.type}">${req.type}</span></td>
+                                    <td>${req.amount.toFixed(2)}</td>
+                                    <td style="color:${req.profit > 0 ? 'var(--success)' : 'var(--danger)'}">${req.profit.toFixed(2)}</td>
+                                    <td style="color:var(--warning); font-weight:bold;">${req.merchantName}</td>
+                                    <td>${req.user}</td>
+                                    <td>
+                                        <div class="action-btns">
+                                            <button class="btn-success" style="color:white; padding:4px 8px;" onclick="approveMerchantRequest('${req.id}')">موافقة ✔</button>
+                                            <button class="btn-danger" style="padding:4px 8px;" onclick="rejectMerchantRequest('${req.id}')">إلغاء ✖</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            `;
+                        });
+                    }
+
                     globalTransactionsData = res.data.transactions;
                     applyTransactionsFilter(); 
                 }
             } catch (error) { showLoader(false); alert('خطأ أثناء تحميل لوحة التحكم: ' + error); }
+        }
+
+        async function handleUpdateLimit(phone) {
+            const newLimit = prompt(`أدخل الليميت الشهري الجديد المخصص للرقم ${phone}:`);
+            if (newLimit === null) return;
+            if (newLimit.trim() === "" || isNaN(newLimit)) { alert("الرجاء إدخال رقم صحيح"); return; }
+
+            showLoader(true);
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST', mode: 'cors',
+                    body: JSON.stringify({ action: 'updatePhoneLimit', phone: phone, newLimit: newLimit })
+                });
+                const res = await response.json();
+                showLoader(false);
+                alert(res.message);
+                if(res.status === 'success') loadAdminDashboard();
+            } catch (error) { showLoader(false); alert('حدث خطأ: ' + error); }
+        }
+
+        async function approveMerchantRequest(requestId) {
+            if(!confirm("هل أنت متأكد من تسييل واعتماد هذه العملية؟ سيتم ترحيل الأرصدة والكاش فوراً للسيستم الرسمي.")) return;
+            showLoader(true);
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST', mode: 'cors',
+                    body: JSON.stringify({ action: 'approveMerchantRequest', requestId: requestId, user: currentUser })
+                });
+                const res = await response.json();
+                showLoader(false);
+                alert(res.message);
+                if(res.status === 'success') loadAdminDashboard();
+            } catch (error) { showLoader(false); alert('حدث خطأ: ' + error); }
+        }
+
+        async function rejectMerchantRequest(requestId) {
+            if(!confirm("هل أنت متأكد من رفض وحذف هذه العملية المعلقة؟")) return;
+            showLoader(true);
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST', mode: 'cors',
+                    body: JSON.stringify({ action: 'rejectMerchantRequest', requestId: requestId, user: currentUser })
+                });
+                const res = await response.json();
+                showLoader(false);
+                alert(res.message);
+                if(res.status === 'success') loadAdminDashboard();
+            } catch (error) { showLoader(false); alert('حدث خطأ: ' + error); }
         }
 
         function applyTransactionsFilter(event) {
@@ -686,15 +816,12 @@
 
             let filteredData = globalTransactionsData;
 
-            if (phoneFilter) {
-                filteredData = filteredData.filter(t => t.phone == phoneFilter);
-            }
+            if (phoneFilter) { filteredData = filteredData.filter(t => t.phone == phoneFilter); }
 
             if (document.getElementById('filter-date-exact').value) {
                 const exactDateObj = new Date(document.getElementById('filter-date-exact').value);
                 const nextDayObj = new Date(exactDateObj);
                 nextDayObj.setDate(nextDayObj.getDate() + 1);
-                
                 filteredData = filteredData.filter(t => {
                     const d = new Date(t.date);
                     return d >= exactDateObj && d < nextDayObj;
@@ -740,7 +867,6 @@
         async function handleAddCash() {
             const amount = document.getElementById('admin-cash-add').value.trim();
             if(!amount || amount <= 0) { alert('الرجاء إدخال مبلغ صحيح للصندوق'); return; }
-            
             showLoader(true);
             try {
                 const response = await fetch(API_URL, {
@@ -758,7 +884,7 @@
         }
 
         async function handleZeroCashBox() {
-            if(!confirm("هل أنت متأكد من تصفير صندوق النقدية (الكاش) بالكامل؟")) return;
+            if(!confirm("هل أنت متأكد من تصفير صندوق النقدية الكاش بالكامل؟")) return;
             showLoader(true);
             try {
                 const response = await fetch(API_URL, {
@@ -775,13 +901,14 @@
         async function handleAddPhone() {
             const phone = document.getElementById('new-phone').value.trim();
             const initialBalance = document.getElementById('new-balance').value.trim();
-            if(!phone || !initialBalance) { alert('الرجاء إدخال رقم الهاتف والرصيد الافتتاحي'); return; }
+            const limit = document.getElementById('new-limit').value.trim();
+            if(!phone || !initialBalance || !limit) { alert('الرجاء إدخال كافة تفاصيل المحفظة والليميت المخصص'); return; }
 
             showLoader(true);
             try {
                 const response = await fetch(API_URL, {
                     method: 'POST', mode: 'cors',
-                    body: JSON.stringify({ action: 'addPhone', phone: phone, initialBalance: initialBalance })
+                    body: JSON.stringify({ action: 'addPhone', phone: phone, initialBalance: initialBalance, limit: limit })
                 });
                 const res = await response.json();
                 showLoader(false);
@@ -789,6 +916,7 @@
                 if(res.status === 'success') {
                     document.getElementById('new-phone').value = "";
                     document.getElementById('new-balance').value = "";
+                    document.getElementById('new-limit').value = "200000";
                     loadAdminDashboard();
                 }
             } catch (error) { showLoader(false); alert('حدث خطأ: ' + error); }
@@ -810,7 +938,7 @@
         }
 
         async function handleZeroBalance(phone) {
-            if(!confirm(`هل أنت متأكد من تصفير رصيد الرقم ${phone}؟ (ستظل الأرباح محفوظة)`)) return;
+            if(!confirm(`هل أنت متأكد من تصفير رصيد الرقم ${phone}؟ ستظل الأرباح محفوظة`)) return;
             showLoader(true);
             try {
                 const response = await fetch(API_URL, {
@@ -838,7 +966,7 @@
                     const select = document.getElementById('user-entry-phone-select');
                     select.innerHTML = '<option value="">-- اختر الرقم --</option>';
                     res.data.forEach(p => {
-                        select.innerHTML += `<option value="${p.phone}">${p.phone} (متبقي: ${p.remainingLimit.toLocaleString()})</option>`;
+                        select.innerHTML += `<option value="${p.phone}">${p.phone} (متبقي ليميت: ${p.remainingLimit.toLocaleString()})</option>`;
                     });
                 }
             } catch (error) { showLoader(false); alert('خطأ في جلب أرقام التليفونات: ' + error); }
@@ -850,14 +978,20 @@
             const amount = document.getElementById(`${prefix}-entry-amount`).value.trim();
             const isCashUpdated = document.getElementById(`${prefix}-has-cash-checkbox`).checked;
 
+            const isMerchant = document.getElementById(`${prefix}-is-merchant-checkbox`).checked;
+            const merchantName = isMerchant ? document.getElementById(`${prefix}-merchant-name`).value.trim() : "";
+
             const rawProfit = document.getElementById(`${prefix}-entry-profit`).value.trim();
             const profitTypeMultipler = parseInt(document.getElementById(`${prefix}-profit-type`).value); 
-            
             const finalProfit = rawProfit ? (Math.abs(parseFloat(rawProfit)) * profitTypeMultipler).toString() : "0";
 
             if(!phone || !amount || rawProfit === "") { 
-                alert('الرجاء إدخال كافة تفاصيل العملية متمثلة في الرقم والقيمة والمكسب/الخسارة'); 
+                alert('الرجاء إدخال كافة التفاصيل الأساسية للعملية متمثلة بالقيمة والمكسب'); 
                 return; 
+            }
+            if(isMerchant && merchantName === "") {
+                alert('الرجاء إدخال اسم التاجر لتوثيق المستحقات في العمليات المعلقة');
+                return;
             }
 
             showLoader(true);
@@ -867,7 +1001,8 @@
                     body: JSON.stringify({
                         action: 'addTransaction',
                         phone: phone, type: type, amount: amount,
-                        profit: finalProfit, isCashUpdated: isCashUpdated, user: currentUser
+                        profit: finalProfit, isCashUpdated: isCashUpdated, user: currentUser,
+                        isMerchant: isMerchant, merchantName: merchantName
                     })
                 });
                 const res = await response.json();
@@ -875,10 +1010,16 @@
                 alert(res.message);
 
                 if(res.status === 'success') {
+                    // تفريغ وتصفير المدخلات
                     document.getElementById(`${prefix}-entry-amount`).value = "";
                     document.getElementById(`${prefix}-entry-profit`).value = "0";
                     document.getElementById(`${prefix}-profit-type`).value = "1";
                     document.getElementById(`${prefix}-has-cash-checkbox`).checked = false;
+                    document.getElementById(`${prefix}-is-merchant-checkbox`).checked = false;
+                    if(document.getElementById(`${prefix}-merchant-name`)) {
+                        document.getElementById(`${prefix}-merchant-name`).value = "";
+                    }
+                    toggleMerchantInput(prefix);
                     
                     if(prefix === 'admin') { loadAdminDashboard(); } 
                     else { loadUserInterface(); }
