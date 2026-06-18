@@ -596,6 +596,7 @@
     </div>
 
     <script>
+        // الرابط الخاص بكِ
         const API_URL = "https://script.google.com/macros/s/AKfycbzS7vofWxWdCq5-NoQ0bSjBLzL4COoR1hEYy5NaTwdg1vHABuO9Y0G4diwL8F7rp2Z_KA/exec"; 
         
         let currentUser = "";
@@ -614,7 +615,7 @@
             if (type === 'ايداع') {
                 labelElement.innerText = "هل تم سحب مال من النقدي؟ (بخصم قيمة العملية من الصندوق)";
             } else {
-                labelElement.innerText = "هل تم عمل إيداع للنقدي? (بإضافة قيمة المعاملة للصندوق)";
+                labelElement.innerText = "هل تم عمل إيداع للنقدي؟ (بإضافة قيمة المعاملة للصندوق)";
             }
         }
 
@@ -722,7 +723,7 @@
                             </tr>
                         `;
                         adminPhoneSelect.innerHTML += `<option value="${p.phone}">${p.phone} (متبقي: ${p.remainingLimit.toLocaleString()})</option>`;
-                        filterPhoneSelect.innerHTML += `<option value="${p.phone}">${p.phone}</option>';
+                        filterPhoneSelect.innerHTML += `<option value="${p.phone}">${p.phone}</option>`;
                     });
 
                     const exportSelect = document.getElementById('export-single-phone-select');
@@ -758,7 +759,7 @@
                         });
                     }
 
-                    // رسم أرشيف وتاريخ التجار بالكامل
+                    // رسم أرشيف وتاريخ التجار بالكامل (تم إصلاح الكود هنا)
                     const historyBody = document.getElementById('merchant-history-table').querySelector('tbody');
                     historyBody.innerHTML = "";
                     if(res.data.merchantHistory.length === 0) {
