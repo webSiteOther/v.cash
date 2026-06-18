@@ -83,7 +83,6 @@
             transition: border 0.3s;
         }
 
-        /* حماية حقول التاريخ من الانعكاس البرمجي في المتصفح وجعلها تظهر بالإنجليزية */
         input[type="date"] {
             direction: ltr;
             text-align: left;
@@ -119,10 +118,11 @@
         .action-btns {
             display: flex;
             gap: 5px;
+            flex-wrap: wrap;
         }
         .action-btns button {
             padding: 6px 10px;
-            font-size: 12px;
+            font-size: 11px;
             width: auto;
         }
 
@@ -335,7 +335,7 @@
         <div class="main-layout">
             <div>
                 <div class="panel" style="border: 2px solid var(--purple);">
-                    <div class="panel-title" style="color: var(--purple); font-weight: bold;">طلبـات التجـار والعمليـات المعلّقـة (في انتظار الموافقة ✔)</div>
+                    <div class="panel-title" style="color: var(--purple); font-weight: bold;">طلبـات التجـار والعمليـات المعلّقـة حـالياً (في انتظار الموافقة ✔)</div>
                     <div class="table-container">
                         <table id="pending-merchant-table">
                             <thead>
@@ -348,6 +348,27 @@
                                     <th>اسم التاجر</th>
                                     <th>بواسطة</th>
                                     <th>إجراءات الإعتماد</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="panel" style="border: 1px solid var(--info);">
+                    <div class="panel-title" style="color: var(--info); font-weight: bold;">تاريخ وأرشيف سجل معاملات التجار (المعتمدة والمرفوضة)</div>
+                    <div class="table-container">
+                        <table id="merchant-history-table">
+                            <thead>
+                                <tr>
+                                    <th>التاريخ والوقت</th>
+                                    <th>الرقم المالي</th>
+                                    <th>النوع</th>
+                                    <th>القيمة الكلية</th>
+                                    <th>المكسب/الخسارة</th>
+                                    <th>اسم التاجر</th>
+                                    <th>بواسطة الموظف</th>
+                                    <th>حالة العملية</th>
                                 </tr>
                             </thead>
                             <tbody></tbody>
@@ -593,7 +614,7 @@
             if (type === 'ايداع') {
                 labelElement.innerText = "هل تم سحب مال من النقدي؟ (بخصم قيمة العملية من الصندوق)";
             } else {
-                labelElement.innerText = "هل تم عمل إيداع للنقدي؟ (بإضافة قيمة المعاملة للصندوق)";
+                labelElement.innerText = "هل تم عمل إيداع للنقدي? (بإضافة قيمة المعاملة للصندوق)";
             }
         }
 
@@ -694,19 +715,21 @@
                                         <button class="btn-success" style="color:white;" onclick="handleUpdateBalance('${p.phone}')">تعديل الرصيد</button>
                                         <button class="btn-success" style="color:white; background:#0288d1;" onclick="handleUpdateLimit('${p.phone}')">الليميت</button>
                                         <button class="btn-warning" onclick="handleZeroBalance('${p.phone}')">تصفير</button>
+                                        <button class="btn-warning" style="background:var(--purple); color:white;" onclick="handleZeroProfit('${p.phone}')">تصفير المكسب</button>
                                         <button class="btn-danger" onclick="handleDeletePhone('${p.phone}')">حذف</button>
                                     </div>
                                 </td>
                             </tr>
                         `;
                         adminPhoneSelect.innerHTML += `<option value="${p.phone}">${p.phone} (متبقي: ${p.remainingLimit.toLocaleString()})</option>`;
-                        filterPhoneSelect.innerHTML += `<option value="${p.phone}">${p.phone}</option>`;
+                        filterPhoneSelect.innerHTML += `<option value="${p.phone}">${p.phone}</option>';
                     });
 
                     const exportSelect = document.getElementById('export-single-phone-select');
                     exportSelect.innerHTML = '<option value="">اختر رقم لتصديره</option>';
                     res.data.phonesSummary.forEach(p => { exportSelect.innerHTML += `<option value="${p.phone}">${p.phone}</option>`; });
 
+                    // رسم جدول طلبات التجار المعلقة الحالية
                     const pendingBody = document.getElementById('pending-merchant-table').querySelector('tbody');
                     pendingBody.innerHTML = "";
                     if(res.data.pendingRequests.length === 0) {
@@ -735,13 +758,37 @@
                         });
                     }
 
+                    // رسم أرشيف وتاريخ التجار بالكامل
+                    const historyBody = document.getElementById('merchant-history-table').querySelector('tbody');
+                    historyBody.innerHTML = "";
+                    if(res.data.merchantHistory.length === 0) {
+                        historyBody.innerHTML = `<tr><td colspan="8" style="text-align:center; color:var(--text-muted);">لا توجد عمليات سابقة مؤرشفة للتجار</td></tr>`;
+                    } else {
+                        res.data.merchantHistory.forEach(h => {
+                            const d = new Date(h.date);
+                            const fDate = `${d.toLocaleDateString('ar-EG')} ${d.toLocaleTimeString('ar-EG')}`;
+                            let statusBadge = h.status === 'Approved' ? `<span style="color:var(--success); font-weight:bold;">معتمد ومسيل ✔</span>` : `<span style="color:var(--danger); font-weight:bold;">مرفوض ومحذوف ✖</span>`;
+                            historyBody.innerHTML += `
+                                <tr>
+                                    <td>${fDate}</td>
+                                    <td>${h.phone}</td>
+                                    <td><span class="type-badge ${h.type}">${h.type}</span></td>
+                                    <td>${h.amount.toFixed(2)}</td>
+                                    <td style="color:${h.profit > 0 ? 'var(--success)' : 'var(--danger)'}">${h.profit.toFixed(2)}</td>
+                                    <td style="color:var(--info); font-weight:bold;">${h.merchantName}</td>
+                                    <td>${h.user}</td>
+                                    <td>${statusBadge}</td>
+                                </tr>
+                            `;
+                        });
+                    }
+
                     globalTransactionsData = res.data.transactions;
                     applyTransactionsFilter(); 
                 }
             } catch (error) { showLoader(false); alert('خطأ أثناء تحميل لوحة التحكم: ' + error); }
         }
 
-        // دالة التعديل اليدوي على الرصيد الحالي بعد التصفير أو في العموم
         async function handleUpdateBalance(phone) {
             const newBalance = prompt(`أدخل رصيد محفظة الرقم الجديد يدويًا ${phone}:`);
             if (newBalance === null) return;
@@ -778,8 +825,23 @@
             } catch (error) { showLoader(false); alert('حدث خطأ: ' + error); }
         }
 
+        async function handleZeroProfit(phone) {
+            if(!confirm(`هل أنت متأكد من تصفير صافي مكسب الرقم ${phone} بالكامل؟ (لن يتأثر رصيد المحفظة الحالي)`)) return;
+            showLoader(true);
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST', mode: 'cors',
+                    body: JSON.stringify({ action: 'zeroProfit', phone: phone, user: currentUser })
+                });
+                const res = await response.json();
+                showLoader(false);
+                alert(res.message);
+                if(res.status === 'success') loadAdminDashboard();
+            } catch (error) { showLoader(false); alert('حدث خطأ: ' + error); }
+        }
+
         async function approveMerchantRequest(requestId) {
-            if(!confirm("هل أنت متأكد من اعتماد هذه العملية؟ سيتم ترحيل الأرصدة والكاش فوراً.")) return;
+            if(!confirm("هل أنت متأكد من اعتماد هذه العملية؟ سيتم خصمها/إيداعها من الرقم وضبط الكاشير فوراً.")) return;
             showLoader(true);
             try {
                 const response = await fetch(API_URL, {
