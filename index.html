@@ -161,7 +161,7 @@
             border-radius: 8px;
             border: 1px solid var(--border);
             border-right: 4px solid var(--accent);
-            position: relative; /* تفعيل الموضع النسبي لوضع زر التصفير */
+            position: relative; 
         }
         .metric-card.deposit { border-right-color: var(--success); }
         .metric-card.withdraw { border-right-color: var(--danger); }
@@ -173,7 +173,6 @@
         .metric-title { font-size: 14px; color: var(--text-muted); margin-bottom: 8px; }
         .metric-value { font-size: 22px; font-weight: bold; }
 
-        /* تصميم زر التصفير الصغير للمربعات العلوية */
         .metric-clear-btn {
             position: absolute;
             top: 8px;
@@ -467,7 +466,7 @@
                                     <th>قيمة الكاش</th>
                                     <th>المكسب/الخسارة</th>
                                     <th>بواسطة</th>
-                                </tr>
+                                    <th>إجراءات</th> </tr>
                             </thead>
                             <tbody></tbody>
                         </table>
@@ -757,7 +756,6 @@
                     exportSelect.innerHTML = '<option value="">اختر رقم لتصديره</option>';
                     res.data.phonesSummary.forEach(p => { exportSelect.innerHTML += `<option value="${p.phone}">${p.phone}</option>`; });
 
-                    // رسم جدول طلبات التجار المعلقة الحالية
                     const pendingBody = document.getElementById('pending-merchant-table').querySelector('tbody');
                     pendingBody.innerHTML = "";
                     if(res.data.pendingRequests.length === 0) {
@@ -786,7 +784,6 @@
                         });
                     }
 
-                    // رسم أرشيف وتاريخ التجار بالكامل
                     const historyBody = document.getElementById('merchant-history-table').querySelector('tbody');
                     historyBody.innerHTML = "";
                     if(res.data.merchantHistory.length === 0) {
@@ -817,7 +814,6 @@
             } catch (error) { showLoader(false); alert('خطأ أثناء تحميل لوحة التحكم: ' + error); }
         }
 
-        // دالة التصفير الذكية للمربعات العلوية
         async function handleZeroTopMetric(actionName, confirmMessage) {
             if(!confirm(confirmMessage)) return;
             showLoader(true);
@@ -959,6 +955,8 @@
             filteredData.forEach(t => {
                 const d = new Date(t.date);
                 const formattedDate = `${d.toLocaleDateString('ar-EG')} ${d.toLocaleTimeString('ar-EG')}`;
+                const isoDateForDelete = d.toISOString(); // تجهيز التاريخ الدقيق لإرساله لعملية الحذف
+                
                 transBody.innerHTML += `
                     <tr>
                         <td>${formattedDate}</td>
@@ -968,9 +966,28 @@
                         <td>${t.cashAmount ? t.cashAmount.toFixed(2) : '0.00'}</td>
                         <td style="color:${t.profit > 0 ? 'var(--success)' : (t.profit < 0 ? 'var(--danger)' : 'var(--text-main)')}">${parseFloat(t.profit).toFixed(2)}</td>
                         <td>${t.user}</td>
+                        <td>
+                            <button class="btn-danger" style="padding: 4px 8px; font-size: 11px;" onclick="handleDeleteTransaction('${isoDateForDelete}')">حذف وعكس</button>
+                        </td>
                     </tr>
                 `;
             });
+        }
+
+        // الدالة الجديدة التي ترسل طلب حذف وعكس العملية للباك إند
+        async function handleDeleteTransaction(timestamp) {
+            if(!confirm("تحذير حرج: هل أنت متأكد من حذف هذه العملية؟ سيتم إرجاع أموال المحفظة وصندوق الكاش لما كانت عليه قبل هذه العملية فوراً لحماية الحسابات.")) return;
+            showLoader(true);
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST', mode: 'cors',
+                    body: JSON.stringify({ action: 'deleteTransaction', timestamp: timestamp, user: currentUser })
+                });
+                const res = await response.json();
+                showLoader(false);
+                alert(res.message);
+                if(res.status === 'success') loadAdminDashboard();
+            } catch (error) { showLoader(false); alert('حدث خطأ أثناء محاولة الحذف: ' + error); }
         }
 
         function clearTransactionsFilter() {
