@@ -161,6 +161,7 @@
             border-radius: 8px;
             border: 1px solid var(--border);
             border-right: 4px solid var(--accent);
+            position: relative; /* تفعيل الموضع النسبي لوضع زر التصفير */
         }
         .metric-card.deposit { border-right-color: var(--success); }
         .metric-card.withdraw { border-right-color: var(--danger); }
@@ -171,6 +172,27 @@
 
         .metric-title { font-size: 14px; color: var(--text-muted); margin-bottom: 8px; }
         .metric-value { font-size: 22px; font-weight: bold; }
+
+        /* تصميم زر التصفير الصغير للمربعات العلوية */
+        .metric-clear-btn {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            width: auto !important;
+            padding: 2px 6px !important;
+            font-size: 10px !important;
+            background: rgba(255, 23, 68, 0.15) !important;
+            color: var(--danger) !important;
+            border: 1px solid var(--danger) !important;
+            border-radius: 4px !important;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+        .metric-clear-btn:hover {
+            background: var(--danger) !important;
+            color: #fff !important;
+        }
 
         .main-layout {
             display: grid;
@@ -309,26 +331,32 @@
             <div class="metric-card wallets">
                 <div class="metric-title">إجمالي المحافظ</div>
                 <div class="metric-value" id="metrics-wallets">0.00</div>
+                <button class="metric-clear-btn" onclick="handleZeroTopMetric('zeroAllWallets', 'هل أنت متأكد من تصفير أرصدة جميع المحافظ؟')">تصفير</button>
             </div>
             <div class="metric-card all-accounts">
                 <div class="metric-title">كل الحسابات (محافظ+نقدي)</div>
                 <div class="metric-value" id="metrics-all-accounts">0.00</div>
+                <button class="metric-clear-btn" onclick="handleZeroTopMetric('zeroAllAccounts', 'هل أنت متأكد من تصفير كافة الحسابات والمحفظة والصندوق بالكامل؟')">تصفير</button>
             </div>
             <div class="metric-card cash">
                 <div class="metric-title">صندوق الكاش (السيولة النقدية)</div>
                 <div class="metric-value" id="metrics-cash">0.00</div>
+                <button class="metric-clear-btn" onclick="handleZeroTopMetric('zeroCashBox', 'هل أنت متأكد من تصفير صندوق النقدية الكاش؟')">تصفير</button>
             </div>
             <div class="metric-card profit">
                 <div class="metric-title">صافي الأرباح المحققة</div>
                 <div class="metric-value" id="metrics-profit">0.00</div>
+                <button class="metric-clear-btn" onclick="handleZeroTopMetric('zeroAllProfits', 'هل أنت متأكد من تصفير الأرباح والمكاسب من السجلات بالكامل؟')">تصفير</button>
             </div>
             <div class="metric-card deposit">
                 <div class="metric-title">إجمالي الإيداعات</div>
                 <div class="metric-value" id="metrics-deposit">0.00</div>
+                <button class="metric-clear-btn" onclick="handleZeroTopMetric('zeroDeposits', 'هل أنت متأكد من تصفير إجمالي الإيداعات وحذف سجلاتها الحالية؟')">تصفير</button>
             </div>
             <div class="metric-card withdraw">
                 <div class="metric-title">إجمالي السحوبات</div>
                 <div class="metric-value" id="metrics-withdraw">0.00</div>
+                <button class="metric-clear-btn" onclick="handleZeroTopMetric('zeroWithdrawals', 'هل أنت متأكد من تصفير إجمالي السحوبات وحذف سجلاتها الحالية؟')">تصفير</button>
             </div>
         </div>
 
@@ -456,7 +484,7 @@
                     </div>
                     <div class="flex-actions" style="margin-bottom:0;">
                         <button onclick="handleAddCash()" style="background: var(--warning); color:#000;">إضافة نقدية</button>
-                        <button onclick="handleZeroCashBox()" class="btn-danger">تصفير الصندوق</button>
+                        <button onclick="handleZeroTopMetric('zeroCashBox', 'هل أنت متأكد من تصفير صندوق النقدية الكاش بالكامل؟')" class="btn-danger">تصفير الصندوق</button>
                     </div>
                 </div>
 
@@ -596,7 +624,6 @@
     </div>
 
     <script>
-        // الرابط الخاص بكِ
         const API_URL = "https://script.google.com/macros/s/AKfycbzS7vofWxWdCq5-NoQ0bSjBLzL4COoR1hEYy5NaTwdg1vHABuO9Y0G4diwL8F7rp2Z_KA/exec"; 
         
         let currentUser = "";
@@ -759,7 +786,7 @@
                         });
                     }
 
-                    // رسم أرشيف وتاريخ التجار بالكامل (تم إصلاح الكود هنا)
+                    // رسم أرشيف وتاريخ التجار بالكامل
                     const historyBody = document.getElementById('merchant-history-table').querySelector('tbody');
                     historyBody.innerHTML = "";
                     if(res.data.merchantHistory.length === 0) {
@@ -788,6 +815,22 @@
                     applyTransactionsFilter(); 
                 }
             } catch (error) { showLoader(false); alert('خطأ أثناء تحميل لوحة التحكم: ' + error); }
+        }
+
+        // دالة التصفير الذكية للمربعات العلوية
+        async function handleZeroTopMetric(actionName, confirmMessage) {
+            if(!confirm(confirmMessage)) return;
+            showLoader(true);
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST', mode: 'cors',
+                    body: JSON.stringify({ action: actionName, user: currentUser })
+                });
+                const res = await response.json();
+                showLoader(false);
+                alert(res.message);
+                if(res.status === 'success') loadAdminDashboard();
+            } catch (error) { showLoader(false); alert('حدث خطأ أثناء التصفير: ' + error); }
         }
 
         async function handleUpdateBalance(phone) {
@@ -954,21 +997,6 @@
                     document.getElementById('admin-cash-add').value = "";
                     loadAdminDashboard();
                 }
-            } catch (error) { showLoader(false); alert('حدث خطأ: ' + error); }
-        }
-
-        async function handleZeroCashBox() {
-            if(!confirm("هل أنت متأكد من تصفير صندوق النقدية الكاش بالكامل؟")) return;
-            showLoader(true);
-            try {
-                const response = await fetch(API_URL, {
-                    method: 'POST', mode: 'cors',
-                    body: JSON.stringify({ action: 'zeroCashBox', user: currentUser })
-                });
-                const res = await response.json();
-                showLoader(false);
-                alert(res.message);
-                if(res.status === 'success') loadAdminDashboard();
             } catch (error) { showLoader(false); alert('حدث خطأ: ' + error); }
         }
 
